@@ -111,15 +111,15 @@ def main():
         sys.exit(1)
 
     elif options.relocate_movies:
-        pass #relocate_movies(options.source, options.target)
+        relocate_movies(options.source, options.target)
     elif options.new_files:
-        pass #list(find_new_files(options.source, options.target, options.verbose))
+        list(find_new_files(options.source, options.target, options.verbose))
     elif options.relocate_photos:
-        pass #relocate_photos(options.source, options.target)
+        relocate_photos(options.source, options.target)
     elif options.find_duplicates:
-        pass #find_duplicates(options.source, options.target, delete_duplicates=options.delete, options.verbose)
+        find_duplicates(options.source, options.target, delete_duplicates=options.delete, verbose=options.verbose)
     elif options.generate_thumbnails:
-        pass #find_duplicates(options.source, options.target, delete_duplicates=options.delete, options.verbose)
+        find_duplicates(options.source, options.target, delete_duplicates=options.delete, verbose=options.verbose)
     elif options.validate_environment:
         validate_environment()
 

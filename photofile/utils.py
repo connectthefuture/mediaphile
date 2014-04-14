@@ -13,6 +13,8 @@ from .constants import *
 
 def get_date_from_file(filename):
     """
+    Get the creation date from the specified filename, either from the EXIF-metadata or the creation-date of the file
+    it EXIF-data is not available.
 
     :param filename: the file to process
     :returns: datetime
@@ -27,9 +29,10 @@ def get_date_from_file(filename):
 
 def generate_filename_from_date(filename, file_date=None):
     """
+    Generates a filename based on the original filename and the timestamp provided.
 
     :param filename:
-    :param file_date:
+    :param file_date: If not provided it will be fetched from the file.
     """
     if not file_date:
         file_date = get_date_from_file(filename)
@@ -45,9 +48,11 @@ def generate_filename_from_date(filename, file_date=None):
 
 def generate_folders_from_date(file_date, tag=None):
     """
+    Generates a date-based folder structure as a string using a datetime.
 
     :param file_date:
-    :param tag:
+    :param tag: if not None it will replace the day-part of the result.
+    :returns: string
     """
     if not tag:
         tag = str(file_date.day)
@@ -56,9 +61,11 @@ def generate_folders_from_date(file_date, tag=None):
 
 def dirwalk(dir, extensions_to_include=None):
     """
+    Traverse a directory yielding any file matching extensions_to_include or all if extensions_to_include is None.
+    NB! The list of extensions must be in the form of ['jpg', 'png'] and not ['.jpg', '.png']!
 
-    :param dir:
-    :param extensions_to_include:
+    :param dir: the directory to traverse/scan.
+    :param extensions_to_include: list if file-extensions to include. If not provided or None all files will be included.
     """
     extensions_check = extensions_to_include is not None
     for f in os.listdir(dir):
@@ -97,7 +104,7 @@ def get_files_in_folder(folder, extensions_to_include=None, sort_filenames=True)
 def get_photos_in_folder(folder):
     """
 
-    :param folder:
+    :param folder: the folder to scan for photos.
     """
     return get_files_in_folder(folder, extensions_to_include=photo_extensions_to_include)
 
@@ -118,7 +125,13 @@ def get_tag_from_filename(filename, source_dir):
 
 def relocate_photos(source_dir, target_dir=None, append_timestamp=True, remove_source=True, tag=None):
     """
+    Relocates all photos from the source folder into a date-based hierarchy in the target folder.
 
+    :param source_dir: folder to process.
+    :param target_dir: folder to build date-based structure and move photos into.
+    :param append_timestamp: boolean value indicating if we add a timestamp to every processed filename.
+    :param remove_source: boolean value indicating if we remove photos from the source folder when processed.
+    :param tag: string value to use instead of the day-part in the folder structure.
     """
     if not target_dir:
         target_dir = source_dir
@@ -139,8 +152,10 @@ def relocate_photos(source_dir, target_dir=None, append_timestamp=True, remove_s
 
 def generate_valid_target(filename):
     """
+    Generates a new filename if there is already an existing file with the same name.
 
-    :param filename:
+    :param filename: the target file we want to create
+    :returns: string
     """
     counter = 1
     while True:

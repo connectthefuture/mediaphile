@@ -18,7 +18,7 @@ django-photofile will use this package.
 To take full advantage of photofile you must install pyexiv2 (http://tilloy.net/dev/pyexiv2/download.html). Since pyexiv2
 isn't pip-friendly either download the exe-file if you're on windows or on ubuntu:
 
-        using sudo apt-get install python-pyexiv2
+        sudo apt-get install python-pyexiv2
 
 Then install photofile using one of these methods:
 
