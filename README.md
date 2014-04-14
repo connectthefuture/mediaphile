@@ -1,4 +1,18 @@
-photofile
-=========
+#Photofile
 
-A collection of utils for organization of photos and movies.
+- Version : 0.1-pre
+- Author : Thomas A. Weholt <thomas@weholt.org>
+- License : Modified BSD
+- WWW : https://github.com/weholt/photofile
+- Status : Beta
+
+## Installation
+
+* Alternative a) pip install photofile.
+* Alternative b) download source, unpack and do python setup.py install.
+
+
+## Requirements
+
+* pillow
+* pyexiv2
