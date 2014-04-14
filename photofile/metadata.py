@@ -1,4 +1,5 @@
 #coding=utf-8
+import logging
 import os
 import time
 import datetime
@@ -34,16 +35,16 @@ def _frac_to_simple(frac):
     try:
         f, n = frac
         return round(float(f) / float(n), 3)
-    except (Exception) as e:
+    except (Exception):
         return None
 
 
 def _convert_to_degrees(value):
     """
-    Helper function to convert the GPS coordinates stored in the EXIF to degress in float format
+    Helper function to convert the GPS coordinates stored in the EXIF to degrees in float format
 
     :param value:
-     :returns:
+    :returns:
     """
     d0 = value[0][0]
     d1 = value[0][1]
@@ -100,7 +101,7 @@ def set_keywords(filename, keywords):
         if not keyword in keywords:
             keywords.append(keyword)
 
-    metadata[key] = keywords  #pyexiv2.ExifTag(key,
+    metadata[key] = keywords
     metadata.write()
 
 
@@ -116,7 +117,6 @@ def get_exif(fn):
     info = i._getexif()
     for tag, value in info.items():
         decoded = TAGS.get(tag, tag)
-        #print "TAG", decoded, value
         if decoded == "GPSInfo":
             gps_data = {}
             for t in value:
@@ -146,7 +146,6 @@ def get_exif(fn):
             if altitude:
                 altitude = _frac_to_simple(altitude)
             ret['altitude'] = altitude
-            #print "altitude", ret['altitude']
         else:
             ret[decoded] = value
     try:
@@ -172,9 +171,7 @@ def extract_make_model(data):
     """
     make = data.get('Exif.Image.Make', None)
     model = data.get('Exif.Image.Model', None)
-    if make and model:
-        return make.value, model.value
-    return None, None
+    return (make and model) and (make.value, model.value) or (None, None)
 
 
 def extract_location_data(data):
@@ -235,15 +232,13 @@ def extract_gps_info(data):
         return None, None, None
 
     # Get the degree and minute values
-
     my_reg_exp = re.compile('^[0-9]*')
     my_lon_degrees_float = float(my_reg_exp.search(str(my_lon_degrees)).group())
     my_lat_degrees_float = float(my_reg_exp.search(str(my_lat_degrees)).group())
     my_lon_minutes_float = float(my_reg_exp.search(str(my_lon_minutes)).group())
     my_lat_minutes_float = float(my_reg_exp.search(str(my_lat_minutes)).group())
 
-    # Divide the values by the divisor 
-
+    # Divide the values by the divisor
     my_reg_exp = re.compile('[0-9]*$')
     my_lon = my_lon_degrees_float / float(my_reg_exp.search(str(my_lon_degrees)).group())
     my_lat = my_lat_degrees_float / float(my_reg_exp.search(str(my_lat_degrees)).group())
@@ -251,12 +246,10 @@ def extract_gps_info(data):
     my_lat_min = my_lat_minutes_float / float(my_reg_exp.search(str(my_lat_minutes)).group())
 
     # We now have degrees and decimal minutes, so convert to decimal degrees...
-
     my_lon += my_lon_min / 60
     my_lat += my_lat_min / 60
 
     # Use a negative sign as needed
-
     if my_lon_direction == 'W': my_lon = 0 - my_lon
     if my_lat_direction == 'S': my_lat = 0 - my_lat
 
@@ -265,7 +258,6 @@ def extract_gps_info(data):
     except:
         altitude = None
 
-    #print myLon, myLat, altitude
     return my_lon, my_lat, altitude
 
 
@@ -351,8 +343,6 @@ def get_metadata(filename):
     result = metadata_fields.copy()
     try:
         metadata = get_exif(filename)
-        #import pprint
-        #pprint.pprint(metadata)
         #for k,v in metadata.items():
         #    print "TAG", k, v, str(v)
         # EXIF
@@ -384,9 +374,8 @@ def get_metadata(filename):
         result['longitude'] = metadata.get('longitude')
         result['latitude'] = metadata.get('latitude')
         result['altitude'] = metadata.get('altitude')
-
     except Exception, e:
-        print "Error using PIL: %s for file %s." % (e, filename)
+        logging.warning("Error using PIL: %s for file %s." % (e, filename))
         if PYEXIV2_SUPPORT:
             try:
                 metadata = extract_photo_metadata(filename)
@@ -418,7 +407,9 @@ def get_metadata(filename):
                 result['height'] = metadata.get('ExifImageHeight', None)
                 # IPTC
             except Exception, e:
-                print "Error using PYEXIV: %s for file %s." % (e, filename)
+                logging.warning("Error using PYEXIV: %s for file %s." % (e, filename))
+
     if not 'exif_date' in result:
         result['exif_date'] = datetime.datetime.fromtimestamp(os.stat(filename).st_ctime)
+
     return result

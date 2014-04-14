@@ -6,6 +6,10 @@
 - WWW : https://github.com/weholt/photofile
 - Status : Beta
 
+## About
+
+Photofile is
+
 ## Installation
 
 * Alternative a) pip install photofile.

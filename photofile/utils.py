@@ -1,63 +1,26 @@
-import hashlib
-import sys
+#coding=utf-8
 import os
 import logging
+import hashlib
 import shutil
 from datetime import datetime
 import time
+from PIL import Image
+from PIL.ExifTags import TAGS
 from metadata import get_metadata, get_exif
-
-
-# Sort of constants ;-)
-
-months = {}
-if not months:
-    for month in range(1, 12 + 1):
-        date = datetime(1900, month, 1)
-        months[month] = date.strftime('%B')
-
-
-photo_extensions_to_include = (
-    'jpg',
-    'nef',
-    'png',
-    'bmp',
-    'gif',
-    'cr2',
-    'tif',
-    'tiff',
-    'jpeg',
-)
-
-movie_extensions_to_include = (
-    'avi',
-    'mov',
-    'mp4',
-    'mpg',
-    'mts',
-    'mpeg',
-    'mkv',
-    '3gp',
-    'wmv',
-    'm2t',
-)
-
-timestamp_format = '%Y%m%d_%H%M%S%f'
-duplicate_filename_format = '%(filename)s~%(counter)s%(file_extension)s'
-new_filename_format = "%(filename)s_%(timestamp)s%(file_extension)s"
-ignore_files = ('thumbs.db', 'pspbrwse.jbf', 'picasa.ini', 'autorun.inf', 'hpothb07.dat',)
-#FOLDERS_TO_SKIP = ('DCIM','100_FUJI'.'100CASIO',)
+from .constants import *
 
 
 def get_date_from_file(filename):
     """
 
-    :param filename:
-    :returns:
+    :param filename: the file to process
+    :returns: datetime
     """
     try:
         return get_metadata(filename).get('exif_date', None)
-    except (Exception) as ex:
+    except Exception as ex:
+        logging.warning("get_metadata threw an exception when processing file '%s': %s" % (filename, ex))
         st = os.stat(filename)
         return datetime.fromtimestamp(st.st_ctime > st.st_mtime and st.st_ctime or st.st_mtime)
 
@@ -99,16 +62,16 @@ def dirwalk(dir, extensions_to_include=None):
     """
     extensions_check = extensions_to_include is not None
     for f in os.listdir(dir):
-        fullpath = os.path.join(dir, f)
-        if os.path.isdir(fullpath) and not os.path.islink(fullpath):
-            for x in dirwalk(fullpath, extensions_to_include):
+        full_path = os.path.join(dir, f)
+        if os.path.isdir(full_path) and not os.path.islink(full_path):
+            for x in dirwalk(full_path, extensions_to_include):
                 ext = os.path.splitext(x)[-1][1:].lower()
                 if not extensions_check or ext in extensions_to_include:
                     yield x
         else:
-            ext = os.path.splitext(fullpath)[-1][1:].lower()
+            ext = os.path.splitext(full_path)[-1][1:].lower()
             if not extensions_check or ext in extensions_to_include:
-                yield fullpath
+                yield full_path
 
 
 def get_files_in_folder(folder, extensions_to_include=None, sort_filenames=True):
@@ -167,10 +130,8 @@ def relocate_photos(source_dir, target_dir=None, append_timestamp=True, remove_s
             complete_filename = os.path.join(path, filename)
             if not current_tag:
                 current_tag = get_tag_from_filename(complete_filename, source_dir)
-            processed_file = relocate_photo(complete_filename, target_dir=target_dir, append_timestamp=append_timestamp,
-                                            remove_source=remove_source, tag=current_tag)
-            #if processed_file:
-            #    yield processed_file
+            relocate_photo(complete_filename, target_dir=target_dir, append_timestamp=append_timestamp,
+                           remove_source=remove_source, tag=current_tag)
 
     if remove_source:
         remove_source_folders(photos.keys())
@@ -182,11 +143,11 @@ def generate_valid_target(filename):
     :param filename:
     """
     counter = 1
-    while 1:
+    while True:
         if not os.path.exists(filename):
             break
-        fname, ext = os.path.splitext(filename)
-        filename = duplicate_filename_format % dict(filename=fname, counter=counter, file_extension=ext)
+        base_name, ext = os.path.splitext(filename)
+        filename = duplicate_filename_format % dict(filename=base_name, counter=counter, file_extension=ext)
         counter += 1
     return filename
 
@@ -234,7 +195,9 @@ def relocate_photo(filename, target_dir, file_date=None, append_timestamp=True, 
 
 def remove_source_folders(folders):
     """
+    Removes any empty folders.
 
+    :param folders: folders to process.
     """
     for folder in folders:
         if len(list(dirwalk(folder))) == 0:
@@ -243,52 +206,70 @@ def remove_source_folders(folders):
 
 def find_duplicates(source_folder, target_folder, delete_duplicates=False, verbose=False):
     """
+    Finds filenames present in both the source folder and the target folder and optionally removes them.
 
+    :param source_folder: the source folder.
+    :param target_folder: the master folder.
+    :param delete_duplicates: boolean value to indicate if we want to remove any duplicates found from the source folder.
+    :param verbose: boolean value indicating verbose logging.
     """
     source_files = {}
     target_files = {}
-    if verbose: logging.debug("Scanning source folder ..."),
+    if verbose:
+        logging.debug("Scanning source folder ..."),
+
     for filename in dirwalk(source_folder):
         st = os.stat(filename)
         source_files.setdefault(st.st_size, []).append((filename, st))
-    if verbose: logging.debug("done!")
 
-    if verbose: logging.debug("Scanning target folder ..."),
+    if verbose:
+        logging.debug("done!")
+
+    if verbose:
+        logging.debug("Scanning target folder ..."),
+
     for filename in dirwalk(target_folder):
         st = os.stat(filename)
         target_files.setdefault(st.st_size, []).append((filename, st))
-    if verbose: logging.debug("done!")
 
-    if verbose: logging.debug("Locating duplicates:")
-    for filesize, filedata in target_files.items():
-        existing_files = source_files.get(filesize, [])
+    if verbose:
+        logging.debug("done!")
+
+    if verbose:
+        logging.debug("Locating duplicates:")
+
+    for file_size, file_data in target_files.items():
+        existing_files = source_files.get(file_size, [])
         for existing_filename, existing_st in existing_files:
-            for filename, st in filedata:
-                existing_ctime = st.st_mtime < st.st_ctime and st.st_mtime or st.st_ctime
-                st_ctime = existing_st.st_mtime < existing_st.st_ctime and existing_st.st_mtime or existing_st.st_ctime
-                if existing_ctime == st_ctime:
+            for filename, st in file_data:
+                existing_creation_time = st.st_mtime < st.st_ctime and st.st_mtime or st.st_ctime
+                st_creation_time = existing_st.st_mtime < existing_st.st_ctime and existing_st.st_mtime or existing_st.st_ctime
+                if existing_creation_time == st_creation_time:
                     if delete_duplicates:
                         os.remove(filename)
-                    if verbose: logging.debug("%s appears to be a duplicate of %s." % (filename, existing_filename))
+
+                    if verbose:
+                        logging.debug("%s appears to be a duplicate of %s." % (filename, existing_filename))
+
                     yield filename
 
 
+    # base_filename, ext = os.path.splitext(filename)
+    # if ext:
+    #     if ext[1:].lower() in photo_extensions_to_include:
+    #         exif = get_exif(filename)
+    #         return str(
+    #             time.strptime(exif.get('DateTime', exif.get('DateTimeOriginal', exif.get('DateTimeDigitized'))),
+    #                           "%Y:%m:%d %H:%M:%S"))
+    #
+
 def get_checksum(filename):
     """
+    Generates a hexdigest version of the SHA512 checksum generated from the provided filename.
 
     :param filename:
+    :returns: a string.
     """
-    fname, ext = os.path.splitext(filename)
-    if ext:
-        if ext[1:].lower() in photo_extensions_to_include:
-            if 1:  #try:
-                exif = get_exif(filename)
-                return str(
-                    time.strptime(exif.get('DateTime', exif.get('DateTimeOriginal', exif.get('DateTimeDigitized'))),
-                                  "%Y:%m:%d %H:%M:%S"))
-                #except Exception, e:
-                #    logging.debug("Error using PIL on %s: %s." % (filename, e))
-
     f = open(filename)
     result = hashlib.sha512()
     while 1:
@@ -301,7 +282,10 @@ def get_checksum(filename):
 
 def build_file_cache(path):
     """
+    Builds a cache using filesize as key and a list of matching filenames as value.
 
+    :param path: the folder containing files to process.
+    :returns: a dictionary of filesize mapped against matching filenames in path.
     """
     result = {}
     for filename in dirwalk(path):
@@ -315,28 +299,42 @@ def build_file_cache(path):
 
 def find_new_files(source_folder, target_folder, verbose=False):
     """
+    Locates files in the source folder not present in the target folder. Uses filesize to determine if something is
+    duplicate or not.
 
-    :param source_folder:
-    :param target_folder:
-    :param verbose:
+    :param source_folder: the folder containing files you want to check are present in the target folder.
+    :param target_folder: the folder containing existing files.
+    :param verbose: boolean value indicating if the process logs debug info or not.
     """
-    if verbose: logging.debug("Scanning source folder ..."),
-    source_files = build_file_cache(source_folder)
-    if verbose: logging.debug("done!")
+    if verbose:
+        logging.debug("Scanning source folder ..."),
 
-    if verbose: logging.debug("Scanning target folder ..."),
+    source_files = build_file_cache(source_folder)
+
+    if verbose:
+        logging.debug("done!")
+
+    if verbose:
+        logging.debug("Scanning target folder ..."),
+
     target_files = build_file_cache(target_folder)
-    if verbose: logging.debug("done!")
+
+    if verbose:
+        logging.debug("done!")
 
     sha_cache = {}
-    if verbose: logging.debug("Locating new content:")
-    for filesize, filenames in target_files.items():
-        if not filesize in source_files.keys():
+    if verbose:
+        logging.debug("Locating new content:")
+
+    for file_size, filenames in target_files.items():
+        if not file_size in source_files.keys():
             for filename in filenames:
-                if verbose: logging.debug(filename)
+                if verbose:
+                    logging.debug(filename)
+
                 yield filename
         else:
-            for existing_filename in source_files[filesize]:
+            for existing_filename in source_files[file_size]:
                 for filename in filenames:
 
                     if existing_filename[:8] == filename[:8]:
@@ -349,36 +347,38 @@ def find_new_files(source_folder, target_folder, verbose=False):
                         sha_cache[filename] = get_checksum(filename)
 
                     if sha_cache[existing_filename] != sha_cache[filename]:
-                        if verbose: logging.debug filename
+                        if verbose:
+                            logging.debug(filename)
+
                         yield filename
 
 
-def print_tag(sourcefolder):
+def print_tag(source_folder):
     """
 
-    :param sourcefolder:
+    :param source_folder:
     """
-    for filename in dirwalk(sourcefolder):
-        print(filename, get_tag_from_filename(filename, sourcefolder))
+    for filename in dirwalk(source_folder):
+        print(filename, get_tag_from_filename(filename, source_folder))
 
 
-def clean_up(sourcefolder):
+def clean_up(source_folder):
     """
 
-    :param sourcefolder:
+    :param source_folder:
     """
-    logging.debug("Cleaning up %s" % sourcefolder)
-    for filename in dirwalk(sourcefolder):
+    logging.debug("Cleaning up %s" % source_folder)
+    for filename in dirwalk(source_folder):
         if os.path.basename(filename) in ignore_files:
             os.remove(filename)
 
     paths = {}
-    for path in [os.path.join(sourcefolder, path) for path in os.listdir(sourcefolder)]:
+    for path in [os.path.join(source_folder, path) for path in os.listdir(source_folder)]:
 
         if os.path.isdir(path):
-            paths[os.path.join(sourcefolder, path)] = []
+            paths[os.path.join(source_folder, path)] = []
 
-    for filename in dirwalk(sourcefolder):
+    for filename in dirwalk(source_folder):
         path, filename = os.path.split(filename)
         paths.setdefault(path, []).append(filename)
 
@@ -395,12 +395,13 @@ def clean_up(sourcefolder):
 
 def relocate_movies(source_dir, target_dir=None, append_timestamp=True, remove_source=True, tag=None):
     """
+    Relocates movies into a date-based hierarchy based on the creation date of the files.
 
-    :param source_dir:
-    :param target_dir:
-    :param append_timestamp:
-    :param remove_source:
-    :param tag:
+    :param source_dir: the source folder containing movies to process.
+    :param target_dir: the target folder to hold the date-based folder structure.
+    :param append_timestamp: boolean value indicating if we add a timestamp to the filenames.
+    :param remove_source: boolean value indicating if we remove the source files from the source dir on success.
+    :param tag: single string to use instead of the day-part in the date-based folder structure.
     """
     if not target_dir:
         target_dir = source_dir
@@ -422,27 +423,29 @@ def relocate_movies(source_dir, target_dir=None, append_timestamp=True, remove_s
 def relocate_movie(filename, target_dir, append_timestamp=True, remove_source=True, tag=None, skip_existing=False,
                    path_prefix=None):
     """
+    Will create (or move into if remove_source is set to True) a photo a date-hierarchy based on the EXIF-date found in
+    the photo metadata.
 
-    :param filename:
-    :param target_dir:
-    :param append_timestamp:
-    :param remove_source:
-    :param tag:
-    :param skip_existing:
-    :param path_prefix:
+    :param filename: the original file to process.
+    :param target_dir: the target folder to hold the generated data-hierarchy.
+    :param append_timestamp: a boolean value indicating if the generated filename should include a timestamp.
+    :param remove_source: boolean value indicating if the original source should be removed after processing.
+    :param tag: single word text string to use instead of the day-part of the folder structure, to group photos by tag.
+    :param skip_existing: boolean value indicating if the processing should exit if target file is already present.
+    :param path_prefix: string to prepend the generated date-based hierarchy folder structure.
     """
     st = os.stat(filename)
-    date = st.st_ctime < st.st_mtime and datetime.fromtimestamp(st.st_ctime) or datetime.fromtimestamp(st.st_mtime)
+    dt = st.st_ctime < st.st_mtime and datetime.fromtimestamp(st.st_ctime) or datetime.fromtimestamp(st.st_mtime)
 
     if path_prefix:
-        target_dir = os.path.join(target_dir, path_prefix, generate_folders_from_date(date, tag))
+        target_dir = os.path.join(target_dir, path_prefix, generate_folders_from_date(dt, tag))
     else:
-        target_dir = os.path.join(target_dir, generate_folders_from_date(date, tag))
+        target_dir = os.path.join(target_dir, generate_folders_from_date(dt, tag))
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
     new_filename = os.path.join(target_dir,
-                                append_timestamp and generate_filename_from_date(filename, date) or os.path.basename(
+                                append_timestamp and generate_filename_from_date(filename, dt) or os.path.basename(
                                     filename))
     new_filename = generate_valid_target(new_filename)
 
@@ -456,53 +459,44 @@ def relocate_movie(filename, target_dir, append_timestamp=True, remove_source=Tr
 
     return new_filename
 
-#coding=utf-8
-import os
-import logging
-from PIL import Image
-from PIL.ExifTags import TAGS
-from metadata import get_exif
 
-
-def generate_thumb(media_folder, absolute_filename, width, height, do_crop, alternative_thumbnail_name=None, raise_exception_on_error = False):
+def generate_thumb(media_folder, absolute_filename, width, height, do_crop, alternative_thumbnail_name=None,
+                   raise_exception_on_error=False):
     """
 
-    :param media_folder:
-    :param absolute_filename:
-    :param width:
-    :param height:
-    :param do_crop:
-    :param alternative_thumbnail_name:
-    :param raise_exception_on_error:
+    :param media_folder: target folder to hold the generated thumbnails.
+    :param absolute_filename: the original photo to use as base for the thumbnail.
+    :param width: max width of the generated thumbnail.
+    :param height: max height of the generated thumbnail.
+    :param do_crop: boolean value indicating if the image should be cropped using width and height arguments as bounds.
+    :param alternative_thumbnail_name: alternative name for the generated thumbnail.
+    :param raise_exception_on_error: boolean value indicating if we raise exception on any error or return quietly.
     """
     logging.debug("Generating thumb: %s" % absolute_filename)
 
-    fname, ext = os.path.splitext(os.path.basename(absolute_filename))
+    filename, ext = os.path.splitext(os.path.basename(absolute_filename))
     if alternative_thumbnail_name:
-        fname = alternative_thumbnail_name
-    resized_image = '%s_%sx%s%s%s' % (fname, width, height, do_crop and '_crop' or '',ext)
+        filename = alternative_thumbnail_name
 
     if not os.path.exists(absolute_filename):
         logging.warning("inputfile %s does not exists" % absolute_filename)
+
         if raise_exception_on_error:
             raise Exception('Inputfile "%s" does not exists.' % absolute_filename)
-        return 'inputfile does not exists'
 
-    thumb_dir = os.path.join(media_folder, 'thumbs')
+        return
 
-    if not os.path.exists(thumb_dir):
-        os.makedirs(thumb_dir)
+    if not os.path.exists(media_folder):
+        os.makedirs(media_folder)
 
-    output = os.path.join(thumb_dir, resized_image)
-    final_url = "%sthumbs/%s" % (settings.MEDIA_URL, resized_image)
-
+    output = os.path.join(media_folder, '%s_%sx%s%s%s' % (filename, width, height, do_crop and '_crop' or '', ext))
     if not os.path.exists(output):
         try:
             resize_image(absolute_filename, output, width, height, crop=do_crop)
         except (Exception) as ex:
             logging.warning(ex)
 
-    return final_url
+    return output
 
 
 def resize_image(source_file, target_file, width, height, crop=False):
@@ -511,11 +505,11 @@ def resize_image(source_file, target_file, width, height, crop=False):
     Will read EXIF data from source_file, look for information about orientation
     and rotate photo if such info is found.
 
-    :param source_file:
-    :param target_file:
-    :param width:
-    :param height:
-    :param crop:
+    :param source_file: the original photo or image.
+    :param target_file: the target output file for the resized and processed photo.
+    :param width: max width for the processed photo.
+    :param height: max height for the processed photo.
+    :param crop: boolean value indicating if the photo should be cropped using width and height as boundries.
     """
     image = Image.open(source_file)
     orientation = 0
@@ -548,7 +542,7 @@ def resize_image(source_file, target_file, width, height, crop=False):
             crop_height = crop_width / dst_ratio
             x_offset = 0
             y_offset = int(float(src_height - crop_height) / 3)
-        image = image.crop((x_offset, y_offset, x_offset+int(crop_width), y_offset+int(crop_height)))
+        image = image.crop((x_offset, y_offset, x_offset + int(crop_width), y_offset + int(crop_height)))
         image = image.resize((int(dst_width), int(dst_height)), Image.ANTIALIAS)
 
     # rotate according to orientation stored in exif-data:
