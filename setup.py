@@ -13,7 +13,7 @@ setup(
     license = "Modified BSD",
     keywords = "photo movie thumbnail organization generation metadata",
     url = "https://github.com/weholt/photofile",
-    install_requires = ['pillow', 'pyexiv2',],
+    install_requires = ['pillow',],
     zip_safe = False,
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -24,7 +24,7 @@ setup(
         'Topic :: Database',
         ],
     packages = find_packages(),
-    long_description=open(os.path.join(os.path.dirname(__file__), 'README.MD')).read(),
+    long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     entry_points = {
         'console_scripts': [
             'photofile = photofile:main',
