@@ -42,8 +42,8 @@ def generate_filename_from_date(filename, file_date=None):
     if timestamp in filename:
         filename = filename.replace(timestamp, '')
 
-    fname, ext = os.path.splitext(filename)
-    return new_filename_format % dict(filename=fname, timestamp=timestamp, file_extension=ext)
+    basename, ext = os.path.splitext(filename)
+    return new_filename_format % dict(filename=basename, timestamp=timestamp, file_extension=ext)
 
 
 def generate_folders_from_date(file_date, tag=None):
