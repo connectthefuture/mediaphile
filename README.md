@@ -15,7 +15,7 @@ sidecar files and generating thumbnails.
 ## Warning
 
 When using software that does massive changes to your files, and things like photos and movies in particular, you should
-take backups on the files you're going to process before trying to use this program. Photofile comes with no warranties
+take backups of the files you're going to process before trying to use this program. Photofile comes with no warranties
 and may mess your photo-library up completely. So before doing anything test it on a small test-batch of photos and movies
 and always backup the files you process, both the master archive and the folders with new content.
 
@@ -64,7 +64,7 @@ Creates thumbnails target folder for all photos in source folder.
 
 Example:
 
-    $ photofile -w -s main_archive -t thumbnail_folder
+    $ photofile -w -s main_archive -t thumbnail_folder -o 400x400 --crop
 
 ### Search sidecar XMP files for keywords
 
