@@ -12,23 +12,30 @@ Photofile is a program (and a collection of reusable methods) for photo/image or
 NB! Photofile is still under active development and there are features that's not fully implemented yet, namely searching
 sidecar files and generating thumbnails.
 
+## Warning
+
+When using software that does massive changes to your files, and things like photos and movies in particular, you should
+take backups on the files you're going to process before trying to use this program. Photofile comes with no warranties
+and may mess your photo-library up completely. So before doing anything test it on a small test-batch of photos and movies
+and always backup the files you process, both the master archive and the folders with new content.
+
 ## Features
 
-### Relocate_movies
-
-Relocates movies by creation date into a date-based hierarchy.
-
-Example:
-
-    $ photofile -m -s incoming_movies -t processed_movies
-
-### Relocate_photos
+### Relocate photos
 
 Relocates photos and images by EXIF/creation date into a date-based hierarchy.
 
 Example:
 
     $ photofile -p -s incoming_photos -t processed_photos
+
+### Relocate movies
+
+Relocates movies by creation date into a date-based hierarchy.
+
+Example:
+
+    $ photofile -m -s incoming_movies -t processed_movies
 
 ### Find duplicates
 
@@ -75,7 +82,7 @@ isn't pip-friendly either download the exe-file if you're on windows or on ubunt
 
 Then install photofile using one of these methods:
 
-Alternative a:
+Alternative a)
 
     pip install photofile.
 
@@ -87,7 +94,7 @@ Alternative b) download source, unpack and do:
 
 ## Command-line/console usage
 
-        $ photofile --help
+    $ photofile --help
 
 
 ## Requirements
@@ -101,4 +108,4 @@ Photofile is a refactoring of the reusable django-app called django-photofile. I
 refactored out all the utils and metadata methods not directly related to the django-app. Any future releases of
 django-photofile will use this package.
 
-### 0.1-pre : first refactoring and initial release of photofile.
+- 0.1-pre : first refactoring and initial release of photofile.
