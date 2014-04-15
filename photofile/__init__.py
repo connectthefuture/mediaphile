@@ -88,7 +88,9 @@ def main():
     thumb_group.add_option("-w", "--generate_thumbnails", dest="generate_thumbnails", action="store_true",
                       help="Creates thumbnails target folder for all photos in source folder")
     thumb_group.add_option("-o", "--dimensions", dest="thumbnail_dimensions", action="store",
-                      help="Dimensions for thumbnail in pixels, for example 400x400 (height X width)")
+                      help="""Dimensions for thumbnail in pixels, for example 400x400 (height X width).
+                      Can also generate thumbnail with different dimensions by providing a list of dimensions, like:
+                      -o 400x400,800x600,1024x768. NB! No spaces!""")
     thumb_group.add_option("--crop", dest="crop_thumbnails", action="store_true",
                       help="Crops thumbnails and uses width and height values as boundries")
     parser.add_option_group(thumb_group)
