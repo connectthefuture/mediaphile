@@ -8,7 +8,7 @@ import time
 from PIL import Image
 from PIL.ExifTags import TAGS
 from metadata import get_metadata, get_exif
-from .constants import *
+from photofile.constants import *
 
 
 def get_date_from_file(filename):
@@ -16,8 +16,8 @@ def get_date_from_file(filename):
     Get the creation date from the specified filename, either from the EXIF-metadata or the creation-date of the file
     it EXIF-data is not available.
 
-    :param filename: the file to process
-    :returns: datetime
+    @param filename: the file to process
+    @returns: datetime
     """
     try:
         return get_metadata(filename).get('exif_date', None)

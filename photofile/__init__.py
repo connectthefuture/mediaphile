@@ -2,7 +2,7 @@
 
 import os
 import sys
-from optparse import OptionParser
+from optparse import OptionParser, OptionGroup
 from photofile.utils import relocate_movies, find_new_files, relocate_photos, find_duplicates, print_tag
 
 
@@ -68,26 +68,56 @@ def main():
     Command-line interface for using photofile.
     """
     parser = OptionParser()
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose logging")
-    parser.add_option("-s", "--source", dest="source", help="the source folder to process")
-    parser.add_option("-t", "--target", dest="target", help="the target folder for new files")
-    parser.add_option("-m", "--relocate_movies", help="relocates movies by creation date into a date-based hierarchy",
-                      dest="relocate_movies", action="store_true")
-    parser.add_option("-p", "--relocate_photos",
+
+    common_group = OptionGroup(parser, "Common parameters")
+    common_group.add_option("-s", "--source", dest="source", help="the source folder to process")
+    common_group.add_option("-t", "--target", dest="target", help="the target folder for new files")
+    common_group.add_option("--dry-run", dest="dru_run", action="store_true",
+                            help="Just do a test-run. No actual changes will be made")
+    parser.add_option_group(common_group)
+
+    photo_group = OptionGroup(parser, "Photo organization")
+    photo_group.add_option("-p", "--relocate_photos",
                       help="relocates photos and images by EXIF/creation date into a date-based hierarchy",
                       dest="relocate_photos", action="store_true")
-    parser.add_option("-d", "--find_duplicates", help="locates duplicates in source folder compared to target folder",
-                      dest="find_duplicates")
-    parser.add_option("-n", "--new_files", help="locates new files in source folder compared to target folder",
-                      dest="new_files")
-    parser.add_option("-x", "--delete_duplicates", action="store_true", dest="delete",
-                      help="deletes any duplicate file from source folder found in both source and target folder")
-    parser.add_option("-w", "--generate_thumbnails", dest="generate_thumbnails", action="store_true",
-                      help="Creates thumbnails target folder for all photos in source folder")
-    parser.add_option("-i", "--search_sidecar", dest="sidecar_keywords", action="callback", callback=cb,
+    photo_group.add_option("-i", "--search_sidecar", dest="sidecar_keywords", action="callback", callback=cb,
                       help="Searches any sidecar/XMP-files found in target for tags with a specific content")
-    parser.add_option("-c", "--validate_environment", dest="validate_environment", action="store_true",
+    parser.add_option_group(photo_group)
+
+    thumb_group = OptionGroup(parser, "Thumbnail generation")
+    thumb_group.add_option("-w", "--generate_thumbnails", dest="generate_thumbnails", action="store_true",
+                      help="Creates thumbnails target folder for all photos in source folder")
+    thumb_group.add_option("-o", "--dimensions", dest="thumbnail_dimensions", action="store",
+                      help="""Dimensions for thumbnail in pixels, for example 400x400 (height X width).
+                      Can also generate thumbnail with different dimensions by providing a list of dimensions, like:
+                      -o 400x400,800x600,1024x768. NB! No spaces!""")
+    thumb_group.add_option("--crop", dest="crop_thumbnails", action="store_true",
+                      help="Crops thumbnails and uses width and height values as boundries")
+    parser.add_option_group(thumb_group)
+
+
+    movie_group = OptionGroup(parser, "Movie organization")
+    movie_group.add_option("-m", "--relocate_movies", help="relocates movies by creation date into a date-based hierarchy",
+                      dest="relocate_movies", action="store_true")
+    parser.add_option_group(movie_group)
+
+    duplicate_group = OptionGroup(parser, "Duplicate handling")
+    duplicate_group.add_option("-d", "--find_duplicates", help="locates duplicates in source folder compared to target folder",
+                      dest="find_duplicates")
+    duplicate_group.add_option("-x", "--delete_duplicates", action="store_true", dest="delete",
+                      help="deletes any duplicate file from source folder found in both source and target folder")
+    parser.add_option_group(duplicate_group)
+
+    new_content_group = OptionGroup(parser, "Finding new files")
+    new_content_group.add_option("-n", "--new_files", help="locates new files in source folder compared to target folder",
+                      dest="new_files")
+    parser.add_option_group(new_content_group)
+
+    debug_group = OptionGroup(parser, "Debug options")
+    debug_group.add_option("-c", "--validate_environment", dest="validate_environment", action="store_true",
                       help="Validates the python environment and checks for required packages")
+    debug_group.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose logging")
+    parser.add_option_group(debug_group)
 
     (options, args) = parser.parse_args()
 
