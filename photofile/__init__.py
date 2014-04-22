@@ -4,6 +4,7 @@ import os
 import sys
 from optparse import OptionParser, OptionGroup
 from photofile.utils import relocate_movies, find_new_files, relocate_photos, find_duplicates, print_tag
+from photofile.xmp import get_xmp_value
 
 
 def validate_environment():

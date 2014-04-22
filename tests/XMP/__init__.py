@@ -17,6 +17,11 @@ class XmpTests(unittest.TestCase):
         """
         self.source_folder = os.path.join(os.curdir, 'XMP')
 
+    def test_caption(self):
+        """
+
+        """
+
 
 if __name__ == '__main__':
     unittest.main()

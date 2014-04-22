@@ -68,6 +68,9 @@ Example:
 
 ### Search sidecar XMP files for keywords
 
+NB! This feature requires the BeautifulSoup library to parse XMP-data.
+
+
 Example, search for any XMP-file with keywords=beach,sun,summer:
 
     $ photofile -t main_archive -i keywords=beach,sun,summer
@@ -91,6 +94,11 @@ Alternative b) download source, unpack and do:
 
     python setup.py install.
 
+This will install photofile and the only mandatory third-party library Pillow. To enable XMP-related features you must
+install the optional third-party libraries like BeatifulSoup and lxml, like so:
+
+    pip install -r requirements/optional.txt
+
 
 ## Command-line/console usage
 
@@ -101,6 +109,9 @@ Alternative b) download source, unpack and do:
 
 * pillow or PIL (mandatory)
 * pyexiv2 (optional)
+* BeautifulSoup ( http://www.crummy.com/software/BeautifulSoup/, optional - for parsing XMP-files)
+* lxml (http://lxml.de/, optional but required by BeautifulSoup)
+
 
 ## History
 

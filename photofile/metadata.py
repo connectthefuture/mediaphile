@@ -154,7 +154,6 @@ def get_exif(fn):
             ret[decoded] = value
     try:
         iptc = IptcImagePlugin.getiptcinfo(i)
-        print(vars(iptc))
         ret['headline'] = iptc[(2, 105)]
         ret['caption'] = iptc[(2, 120)]
         ret['copyright'] = iptc[(2, 116)]
