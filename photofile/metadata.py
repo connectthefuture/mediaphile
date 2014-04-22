@@ -110,11 +110,15 @@ def get_exif(fn):
     """
 
     :param fn:
-    :return:
+    :return: a dictionary with EXIF-data if successful, an empty dictionary if no EXIF-data could be extracted.
     """
     ret = {}
     i = Image.open(fn)
-    info = i._getexif()
+    try:
+        info = i._getexif() # typically on NEF-files this will fail.
+    except (AttributeError):
+        return ret
+
     for tag, value in info.items():
         decoded = TAGS.get(tag, tag)
         if decoded == "GPSInfo":
@@ -150,6 +154,7 @@ def get_exif(fn):
             ret[decoded] = value
     try:
         iptc = IptcImagePlugin.getiptcinfo(i)
+        print(vars(iptc))
         ret['headline'] = iptc[(2, 105)]
         ret['caption'] = iptc[(2, 120)]
         ret['copyright'] = iptc[(2, 116)]
