@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 
 key_mapping = {
     'caption': 'bopt:description',
+    'caption2': 'bopt:descriptionxxx',
 }
 
 
@@ -19,8 +20,12 @@ def get_xmp_value(xmp_file, key, xmp_data=None):
         xmp_data = open(xmp_file).read()
 
     soup = BeautifulSoup(xmp_data)
-    result = soup.find_all(key_mapping[key])
+    result = soup.find_all('blay:options')
     if not result:
         return None
 
-    return result[0]
+    value = result[0].get(key_mapping[key])
+    if value:
+        return value.replace('x-default|', '')
+
+    return None

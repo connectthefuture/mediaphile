@@ -1,8 +1,6 @@
 import os
 import unittest
-from photofile.utils import get_photos_in_folder, get_date_from_file, generate_filename_from_date, \
-    generate_folders_from_date
-from photofile.metadata import get_metadata, get_exif
+from photofile.xmp import get_xmp_value
 
 
 class XmpTests(unittest.TestCase):
@@ -15,12 +13,15 @@ class XmpTests(unittest.TestCase):
         """
         Creates some default data to base our tests on.
         """
-        self.source_folder = os.path.join(os.curdir, 'XMP')
+        self.source_folder = os.path.join(os.path.abspath(os.curdir), 'XMP')
 
     def test_caption(self):
         """
 
         """
+        input_file = os.path.join(self.source_folder, 'DSC_1807_20060417_134347.JPG.xmp')
+        print(get_xmp_value(input_file, 'caption'))
+
 
 
 if __name__ == '__main__':
