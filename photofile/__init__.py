@@ -63,7 +63,6 @@ def print_help(parser):
     print("$ photofile -p -s /home/thomas/Pictures/New -t /home/thomas/Pictures/Sorted")
 
 
-
 def main():
     """
     Command-line interface for using photofile.
