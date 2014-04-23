@@ -27,7 +27,14 @@ setup(
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     entry_points = {
         'console_scripts': [
-            'photofile = photofile:main',
+            'photofile = photofile.cli:main',
+            'photofile.xmp = photofile.cli.xmp:main',
+            'photofile.db = photofile.cli.db:main',
+            'photofile.file = photofile.cli.file:main',
+            'photofile.gps = photofile.cli.gps:main',
+            'photofile.movies = photofile.cli.movies:main',
+            'photofile.thumbnails = photofile.cli.thumbnails:main',
+            'photofile.inotify = photofile.cli.inotify:main',
             ],
         },
 )

@@ -1,6 +1,7 @@
 import os
 import unittest
-from photofile.xmp import get_xmp_value
+
+from photofile.lib.xmp import get_xmp_value
 
 
 class XmpTests(unittest.TestCase):

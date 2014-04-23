@@ -111,6 +111,7 @@ install the optional third-party libraries like BeatifulSoup and lxml, like so:
 * pyexiv2 (optional)
 * BeautifulSoup ( http://www.crummy.com/software/BeautifulSoup/, optional - for parsing XMP-files)
 * lxml (http://lxml.de/, optional but required by BeautifulSoup)
+* pyinotify (https://github.com/seb-m/pyinotify, optional - for watching a folder for photos)
 
 
 ## History
