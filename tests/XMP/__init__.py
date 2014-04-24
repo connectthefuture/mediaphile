@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from photofile.lib.xmp import get_xmp_value
+from mediaphile.lib.xmp import get_xmp_value
 
 
 class XmpTests(unittest.TestCase):

@@ -1,9 +1,9 @@
 import os
 import unittest
 
-from photofile.utils import get_photos_in_folder, get_date_from_file
+from mediaphile.lib.utils import get_photos_in_folder, get_date_from_file
 
-from photofile.lib.metadata import get_metadata, get_exif
+from mediaphile.lib.metadata import get_metadata, get_exif
 
 
 class NikonTests(unittest.TestCase):

@@ -1,10 +1,10 @@
 import os
 import unittest
 
-from photofile.utils import get_photos_in_folder, get_date_from_file, generate_filename_from_date, \
+from mediaphile.lib.utils import get_photos_in_folder, get_date_from_file, generate_filename_from_date, \
     generate_folders_from_date
 
-from photofile.lib.metadata import get_metadata, get_exif
+from mediaphile.lib.metadata import get_metadata, get_exif
 
 
 class NonCameraSpecificTests(unittest.TestCase):
