@@ -9,7 +9,7 @@ setup(
     version = "0.1-pre",
     author = "Thomas Weholt",
     author_email = "thomas@weholt.org",
-    description = ("A collection of utils for organization and manipulation of photos and movies."),
+    description = ("A collection of programs and library of reusable methods for organization and manipulation of photos and movies."),
     license = "Modified BSD",
     keywords = "photo movie thumbnail organization generation metadata",
     url = "https://github.com/weholt/mediaphile",
