@@ -22,34 +22,77 @@ To get help and see what options are available:
 
     mediaphile --help
 
+Example:
+
+    $ mediaphile -s incoming_photos -t processed_photos
+
 ### mediaphile.movies
 
 Organizes movies into a date-based folder hierarchy based on the creation date of the movie.
+
+Example:
+
+    $ mediaphile.movies -s incoming_movies -t processed_movies
 
 ### mediaphile.xmp
 
 Search XMP metadata and list matching photos.
 
+Example, search for any XMP-file with keywords=beach,sun,summer:
+
+    $ mediaphile.xmp -t main_archive -i keywords=beach,sun,summer
+
+NOT IMPLEMENTED AT ALL.
+
 ### mediaphile.thumbnails
 
 Generates thumbnails.
+
+Example:
+
+    $ mediaphile.thumbnails -s main_archive -t thumbnail_folder -o 400x400 --crop
+
+You can also create thumbnails in several resolutions at once:
+
+    $ mediaphile.thumbnails -s main_archive -t thumbnail_folder -o 400x400,800x600,1024x768
+
+If any information about orientation is found in the EXIF metadata the photos will automatically be rotated.
+
+NOT IMPLEMENTED FULLY YET.
 
 ### mediaphile.gps
 
 Process photos based on GPS information found in EXIF-data in the photos.
 
+NOT IMPLEMENTED AT ALL.
+
 ### mediaphile.file
 
 General methods for finding new or duplicate content in two folders.
+
+Show all duplicate files in one folder compared to another folder:
+
+    $ mediaphile.file -s different_arhive -t main_archive
+
+Example to delete all duplicates in different_archive folder:
+
+    $ mediaphile.file -d -s different_arhive -t main_archive
+
+Show all new files in one folder compared to another folder:
+
+    $ mediaphile.file -n -s different_arhive -t main_archive
 
 ### mediaphile.db
 
 Handles generation of a metadata database for faster searches.
 
+NOT IMPLEMENTED AT ALL.
+
 ### mediaphile.inotify
 
 Program that monitors a specific folder and reacts when files are added.
 
+NOT IMPLEMENTED AT ALL.
 
 ## Warning
 
@@ -88,69 +131,6 @@ If you downloaded the complete source code:
 Or if you did just pip install mediaphile:
 
     pip install -r https://raw.githubusercontent.com/weholt/mediaphile/master/requirements/optional.txt
-
-
-## Console based programs
-
-
-### Relocate photos
-
-Relocates photos and images by EXIF/creation date into a date-based hierarchy.
-
-Example:
-
-    $ mediaphile -s incoming_photos -t processed_photos
-
-### Relocate movies
-
-Relocates movies by creation date into a date-based hierarchy.
-
-Example:
-
-    $ mediaphile.movies -s incoming_movies -t processed_movies
-
-### Find duplicates
-
-Locates duplicates in source folder compared to target folder.
-
-Example:
-
-    $ mediaphile.file -s different_arhive -t main_archive
-
-Example to delete all duplicates in different_archive folder:
-
-    $ mediaphile.file -d -s different_arhive -t main_archive
-
-### Find new files
-
-Locates new files in source folder compared to target folder.
-
-Example:
-
-    $ mediaphile.file -n -s different_arhive -t main_archive
-
-
-### Generate thumbnails
-
-Creates thumbnails in target folder for all photos in source folder.
-
-Example:
-
-    $ mediaphile.thumbnails -s main_archive -t thumbnail_folder -o 400x400 --crop
-
-You can also create thumbnails in several resolutions at once:
-
-    $ mediaphile.thumbnails -s main_archive -t thumbnail_folder -o 400x400,800x600,1024x768
-
-If any information about orientation is found in the EXIF metadata the photos will automatically be rotated.
-
-### Search sidecar XMP files for keywords
-
-
-Example, search for any XMP-file with keywords=beach,sun,summer:
-
-    $ mediaphile.xmp -t main_archive -i keywords=beach,sun,summer
-
 
 ## Requirements
 
