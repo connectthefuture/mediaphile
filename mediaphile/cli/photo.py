@@ -22,6 +22,14 @@ def print_help(parser):
 def main():
     """
     Command-line interface for using photo and image related functions of photofile.
+
+    :param name: The name to use.
+    :type name: str.
+    :param state: Current state to be in.
+    :type state: bool.
+    :returns:  int -- the return code.
+    :raises: AttributeError, KeyError
+
     """
     parser = OptionParser()
 
