@@ -9,6 +9,7 @@ from mediaphile.cli import add_common_options, check_common_options
 def print_help(parser):
     """
     Prints help for the command-line interface for photofile along with some examples of use.
+
     :param parser: an optparser instance.
     """
     parser.print_help()

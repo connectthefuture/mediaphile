@@ -8,17 +8,17 @@ mask = pyinotify.IN_DELETE | pyinotify.IN_CREATE  # watched events
 
 class EventHandler(pyinotify.ProcessEvent):
     """
-
+    Eventhandler for inotify.
     """
     def process_IN_CREATE(self, event):
         """
-
+        Handles creation of files.
         """
         print "Creating:", event.pathname
 
     def process_IN_DELETE(self, event):
         """
-
+        Handles deletion of files.
         """
         print "Removing:", event.pathname
 

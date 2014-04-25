@@ -1,4 +1,5 @@
 #coding=utf-8
+
 import os
 import logging
 import hashlib
@@ -6,8 +7,8 @@ import shutil
 
 from PIL import Image
 from PIL.ExifTags import TAGS
-from mediaphile.constants import *
-from mediaphile.lib.constants import photo_extensions_to_include
+import datetime
+from mediaphile.lib import months
 
 from mediaphile.lib.metadata import get_metadata
 
@@ -28,12 +29,19 @@ def get_date_from_file(filename):
         return datetime.fromtimestamp(st.st_ctime > st.st_mtime and st.st_ctime or st.st_mtime)
 
 
-def generate_filename_from_date(filename, file_date=None):
+def generate_filename_from_date(filename, file_date=None, timestamp_format='', new_filename_format=''):
     """
     Generates a filename based on the original filename and the timestamp provided.
 
+    :param timestamp_format:
+    :param new_filename_format:
     :param filename:
     :param file_date: If not provided it will be fetched from the file.
+
+    Example of use::
+
+        0 -- ok
+        1 -- bad
     """
     if not file_date:
         file_date = get_date_from_file(filename)
@@ -102,7 +110,7 @@ def get_files_in_folder(folder, extensions_to_include=None, sort_filenames=True)
     return result
 
 
-def get_photos_in_folder(folder):
+def get_photos_in_folder(folder, photo_extensions_to_include=None):
     """
 
     :param folder: the folder to scan for photos.
@@ -124,7 +132,7 @@ def get_tag_from_filename(filename, source_dir):
     return result
 
 
-def relocate_photos(source_dir, target_dir=None, append_timestamp=True, remove_source=True, tag=None, dry_run=False):
+def relocate_photos(source_dir, target_dir=None, append_timestamp=True, remove_source=True, tag=None, dry_run=False, photo_extensions_to_include=None):
     """
     Relocates all photos from the source folder into a date-based hierarchy in the target folder.
 
@@ -151,7 +159,7 @@ def relocate_photos(source_dir, target_dir=None, append_timestamp=True, remove_s
         remove_source_folders(photos.keys())
 
 
-def generate_valid_target(filename):
+def generate_valid_target(filename, duplicate_filename_format=None):
     """
     Generates a new filename if there is already an existing file with the same name.
 
@@ -298,7 +306,7 @@ def get_checksum(filename):
     return result.hexdigest()
 
 
-def build_file_cache(path):
+def build_file_cache(path, ignore_files=None):
     """
     Builds a cache using filesize as key and a list of matching filenames as value.
 
@@ -380,7 +388,7 @@ def print_tag(source_folder):
         print(filename, get_tag_from_filename(filename, source_folder))
 
 
-def clean_up(source_folder):
+def clean_up(source_folder, ignore_files=None):
     """
 
     :param source_folder:
@@ -411,7 +419,8 @@ def clean_up(source_folder):
                 logging.debug("Error removing %s because %s." % (path, e))
 
 
-def relocate_movies(source_dir, target_dir=None, append_timestamp=True, remove_source=True, tag=None):
+def relocate_movies(source_dir, target_dir=None, append_timestamp=True, remove_source=True, tag=None,
+                    movie_extensions_to_include=None):
     """
     Relocates movies into a date-based hierarchy based on the creation date of the files.
 
