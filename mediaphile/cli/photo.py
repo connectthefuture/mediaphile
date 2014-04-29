@@ -2,8 +2,8 @@
 
 import sys
 from optparse import OptionParser, OptionGroup
-from mediaphile.lib.utils import relocate_photos
-from mediaphile.cli import add_common_options, check_common_options
+from mediaphile.lib.photos import relocate_photos
+from mediaphile.cli import add_common_options, check_common_options, get_user_config
 
 
 def print_help(parser):
@@ -17,28 +17,26 @@ def print_help(parser):
     print("Examples of use:")
     print("")
     print("To relocate photos and generate a date-based hierarchy from EXIF-date:")
-    print("$ photofile -p -s /home/thomas/Pictures/New -t /home/thomas/Pictures/Sorted")
+    print("$ photofile -s /home/thomas/Pictures/New -t /home/thomas/Pictures/Sorted")
 
 
 def main():
     """
     Command-line interface for using photo and image related functions of photofile.
-
-    :param name: The name to use.
-    :type name: str.
-    :param state: Current state to be in.
-    :type state: bool.
-    :returns:  int -- the return code.
-    :raises: AttributeError, KeyError
-
     """
     parser = OptionParser()
 
     common_group = OptionGroup(parser, "Relocates photos and images by EXIF/creation date into a date-based hierarchy")
     common_group.add_option("-s", "--source", dest="source", help="the source folder to process")
     common_group.add_option("-t", "--target", dest="target", help="the target folder for new files")
-    common_group.add_option("--dry-run", dest="dru_run", action="store_true",
+    common_group.add_option("-d", "--delete", dest="delete", action="store_true",
+                            help="delete source files when processed")
+    common_group.add_option("--dry-run", dest="dry_run", action="store_true",
                             help="Just do a test-run. No actual changes will be made")
+    common_group.add_option("-p", "--path-prefix", dest="path_prefix",
+                            help="a prefix to prepend all files when they are processed")
+    common_group.add_option("-x", "--skip-existing", dest="skip_existing", action="store_true",
+                            help="skip moving existing files when processing")
     parser.add_option_group(common_group)
 
     add_common_options(parser)
@@ -51,7 +49,20 @@ def main():
         sys.exit(1)
 
     elif options.relocate_photos:
-        relocate_photos(options.source, options.target)
+        config = get_user_config()
+
+        relocate_photos(
+            source_dir=options.source,
+            target_dir=options.target,
+            append_timestamp=config.getboolean('options', 'append timestamp'),
+            remove_source=options.delete,
+            dry_run=options.dry_run,
+            photo_extensions_to_include=[ext.strip() for ext in config.get('options', 'photo extensions').split(',')],
+            timestamp_format=config.get('options', 'timestamp format'),
+            duplicate_filename_format=config.get('options', 'duplicate filename format'),
+            new_filename_format=config.get('options', 'new filename format'),
+            path_prefix=options.path_prefix,
+            skip_existing=options.skip_existing or config.getboolean('options', 'skip existing'))
 
 
 if __name__ == "__main__":

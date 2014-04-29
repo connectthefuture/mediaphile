@@ -1,8 +1,7 @@
 import os
 import unittest
 
-from mediaphile.lib.utils import get_photos_in_folder, get_date_from_file
-
+from mediaphile.lib.photos import get_photos_in_folder, get_date_from_file
 from mediaphile.lib.metadata import get_metadata, get_exif
 
 

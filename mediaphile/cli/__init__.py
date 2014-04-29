@@ -6,28 +6,50 @@ import ConfigParser
 from os.path import expanduser
 from optparse import OptionGroup
 
+# ------------------------------------------------------------------------
+#
+#                                Defaults
+#
+# ------------------------------------------------------------------------
 
-def get_user_config():
+default_timestamp_format = '%Y%m%d_%H%M%S'#%f
+default_duplicate_filename_format = '%(filename)s~%(counter)s%(file_extension)s'
+default_new_filename_format = "%(filename)s_%(timestamp)s%(file_extension)s"
+default_append_timestamp = True
+default_photo_extensions = ['jpg', 'nef', 'png', 'bmp', 'gif', 'cr2', 'tif', 'tiff', 'jpeg']
+default_movie_extensions = ['avi', 'mov', 'mp4', 'mpg', 'mts', 'mpeg', 'mkv', '3gp', 'wmv', 'm2t']
+default_ignore_files = ['thumbs.db', 'pspbrwse.jbf', 'picasa.ini', 'autorun.inf', 'hpothb07.dat']
+default_ignore_folders = []
+default_skip_existing = False
+default_use_checksum_existence_check = False
+
+
+def get_user_config(folder=None):
     """
-    Returns user configurations found in ~/mediaphile/conf.ini
+    Returns user configurations found in ~/mediaphile/mediaphile.ini or creates a configuration using defaults if it doesn't
+    exist.
+
+    :param folder: location of mediaphile.ini to use
     """
-    home = expanduser("~")
+    home = os.path.abspath(folder or expanduser("~"))
     mediaphile_home = os.path.join(home, 'mediaphile')
-    config_file = os.path.join(mediaphile_home, 'conf.ini')
+    config_file = os.path.join(mediaphile_home, 'mediaphile.ini')
     config = ConfigParser.RawConfigParser()
     if not os.path.exists(mediaphile_home):
         os.makedirs(mediaphile_home)
 
     if not os.path.exists(config_file):
         config.add_section('options')
-        config.set('options', 'timestamp format', '%Y%m%d_%H%M%S%f')
-        config.set('options', 'duplicate filename_format', '%(filename)s~%(counter)s%(file_extension)s')
-        config.set('options', 'new filename format', "%(filename)s_%(timestamp)s%(file_extension)s")
-        config.set('options', 'append timestamp', 'true')
-        config.set('options', 'photo extensions', 'jpg,nef,png,bmp,gif,cr2,tif,tiff,jpeg')
-        config.set('options', 'movie extensions', 'avi,mov,mp4,mpg,mts,mpeg,mkv,3gp,wmv,m2t')
-        config.set('options', 'ignore files', 'thumbs.db,pspbrwse.jbf,picasa.ini,autorun.inf,hpothb07.dat')
-        config.set('options', 'ignore folders', '')
+        config.set('options', 'timestamp format', default_timestamp_format)
+        config.set('options', 'duplicate filename format', default_duplicate_filename_format)
+        config.set('options', 'new filename format', default_new_filename_format)
+        config.set('options', 'append timestamp', default_append_timestamp)
+        config.set('options', 'photo extensions', ','.join(default_photo_extensions))
+        config.set('options', 'movie extensions', ','.join(default_movie_extensions))
+        config.set('options', 'ignore files', ','.join(default_ignore_files))
+        config.set('options', 'ignore folders', ','.join(default_ignore_folders))
+        config.set('options', 'skip existing', default_skip_existing)
+        config.set('options', 'use checksum existence check', default_use_checksum_existence_check)
 
         with open(config_file, 'wb') as configfile:
             config.write(configfile)
@@ -46,6 +68,7 @@ def validate_environment():
     errors = 0
     try:
         import pyexiv2
+
         print("PyExiv2 is installed.")
     except (ImportError):
         errors += 1
@@ -53,6 +76,7 @@ def validate_environment():
 
     try:
         import PIL
+
         print("PIL/pillow is installed.")
     except (ImportError):
         print("PIL/pillow is missing.")
@@ -68,15 +92,15 @@ def cb(option, opt_str, value, parser):
     """
     Callback helper function for optparser.
     """
-    args=[]
+    args = []
     for arg in parser.rargs:
-            if arg[0] != "-":
-                    args.append(arg)
-            else:
-                    del parser.rargs[:len(args)]
-                    break
+        if arg[0] != "-":
+            args.append(arg)
+        else:
+            del parser.rargs[:len(args)]
+            break
     if getattr(parser.values, option.dest):
-            args.extend(getattr(parser.values, option.dest))
+        args.extend(getattr(parser.values, option.dest))
 
     setattr(parser.values, option.dest, args)
 
@@ -90,7 +114,6 @@ def add_common_options(parser):
 
 
 def check_common_options(options, args):
-
     if options.validate_environment:
         validate_environment()
         sys.exit(0)

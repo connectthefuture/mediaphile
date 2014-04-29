@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 from optparse import OptionParser, OptionGroup
-from mediaphile.lib.utils import relocate_movies
+from mediaphile.lib.movies import relocate_movies
 from mediaphile.cli import add_common_options, check_common_options
 
 
