@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+import os
 
 import sys
 from optparse import OptionParser, OptionGroup
+from os.path import expanduser
 from mediaphile.lib.photos import relocate_photos
 from mediaphile.cli import add_common_options, check_common_options, get_user_config
 
@@ -16,8 +18,11 @@ def print_help(parser):
     print("")
     print("Examples of use:")
     print("")
-    print("To relocate photos and generate a date-based hierarchy from EXIF-date:")
-    print("$ photofile -s /home/thomas/Pictures/New -t /home/thomas/Pictures/Sorted")
+    home_folder = expanduser("~")
+    source = os.path.join(home_folder, 'Pictures', 'New')
+    target = os.path.join(home_folder, 'Pictures', 'Sorted')
+    print("To relocate photos and generate a date-based hierarchy from EXIF-date:\n")
+    print("mediaphile -s %s -t %s" % (source, target))
 
 
 def main():
@@ -37,6 +42,8 @@ def main():
                             help="a prefix to prepend all files when they are processed")
     common_group.add_option("-x", "--skip-existing", dest="skip_existing", action="store_true",
                             help="skip moving existing files when processing")
+    common_group.add_option("--configuration-folder", dest="configuration_folder",
+                            help="folder containing mediaphile.ini to use")
     parser.add_option_group(common_group)
 
     add_common_options(parser)
@@ -49,7 +56,7 @@ def main():
         sys.exit(1)
 
     elif options.relocate_photos:
-        config = get_user_config()
+        config = get_user_config(options.configuration_folder or None)
 
         relocate_photos(
             source_dir=options.source,

@@ -24,7 +24,7 @@ default_skip_existing = False
 default_use_checksum_existence_check = False
 
 
-def get_user_config(folder=None):
+def get_user_config_filename(folder=None):
     """
     Returns user configurations found in ~/mediaphile/mediaphile.ini or creates a configuration using defaults if it doesn't
     exist.
@@ -33,7 +33,18 @@ def get_user_config(folder=None):
     """
     home = os.path.abspath(folder or expanduser("~"))
     mediaphile_home = os.path.join(home, 'mediaphile')
-    config_file = os.path.join(mediaphile_home, 'mediaphile.ini')
+    return os.path.join(mediaphile_home, 'mediaphile.ini')
+
+
+def get_user_config(folder=None):
+    """
+    Returns user configurations found in ~/mediaphile/mediaphile.ini or creates a configuration using defaults if it doesn't
+    exist.
+
+    :param folder: location of mediaphile.ini to use
+    """
+    config_file = get_user_config_filename(folder)
+    mediaphile_home = os.path.split(config_file)[0]
     config = ConfigParser.RawConfigParser()
     if not os.path.exists(mediaphile_home):
         os.makedirs(mediaphile_home)
@@ -66,12 +77,14 @@ def validate_environment():
     """
     print("Validating running environment for mediaphile:\n")
     errors = 0
+    optional = 0
+
     try:
         import pyexiv2
 
         print("PyExiv2 is installed.")
     except (ImportError):
-        errors += 1
+        optional += 1
         print("PyExiv2 is missing.")
 
     try:
@@ -82,10 +95,42 @@ def validate_environment():
         print("PIL/pillow is missing.")
         errors += 1
 
-    if not errors:
+    try:
+        import bs4
+
+        print("BeautifulSoup/bs4 is installed.")
+    except (ImportError):
+        print("BeautifulSoup/bs4 is missing.")
+        optional += 1
+
+    try:
+        import lxml
+
+        print("lxml is installed.")
+    except (ImportError):
+        print("lxml is missing.")
+        optional += 1
+
+    try:
+        import pyinotify
+
+        print("pyinotify is installed.")
+    except (ImportError):
+        print("pyinotify is missing.")
+        optional += 1
+
+    print("")
+    if not errors and not optional:
         print("Environment is ok.")
     else:
-        print("Missing %s required packages." % errors)
+        print("Missing %s required and %s optional packages." % (errors, optional))
+
+    print("")
+    print("Configuration (%s) :" % get_user_config_filename())
+    print("")
+    config = get_user_config()
+    for k, v in config.items('options'):
+        print(" %s = %s" % (k.ljust(30, ' '), v))
 
 
 def cb(option, opt_str, value, parser):
