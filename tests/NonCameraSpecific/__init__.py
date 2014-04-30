@@ -18,7 +18,7 @@ class NonCameraSpecificTests(unittest.TestCase):
         """
         self.source_folder = os.path.join(os.curdir, 'NonCameraSpecific')
 
-    def test_get_photos(self):
+    def _test_get_photos(self):
         """
 
         """

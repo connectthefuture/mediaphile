@@ -16,7 +16,7 @@ class XmpTests(unittest.TestCase):
         """
         self.source_folder = os.path.join(os.path.abspath(os.curdir), 'XMP')
 
-    def test_caption(self):
+    def _test_caption(self):
         """
 
         """

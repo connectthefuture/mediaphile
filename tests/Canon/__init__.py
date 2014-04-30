@@ -17,7 +17,7 @@ class CanonTests(unittest.TestCase):
         """
         self.source_folder = os.path.join(os.curdir, 'Canon')
 
-    def test_get_photos(self):
+    def _test_get_photos(self):
         """
 
         """

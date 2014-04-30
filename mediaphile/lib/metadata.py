@@ -320,16 +320,21 @@ def get_metadata(filename):
 
     # Todo : check if NEF then code below, Canon CR2 then what?
     f = open(complete_filename, 'rb')
-    tags = exifread.process_file(f)
+    tags = exifread.process_file(f, details=False)
+
+    result = {}
+
+    if not tags:
+        return result
+
     for tag in tags.keys():
         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
-            #print "Key: '%s', value %s, %s" % (tag, tags[tag], vars(tags[tag]))
-            if tag == 'EXIF DateTimeDigitized':
-                #print tag, tags[tag]
-                tm = time.strptime(str(tags[tag]), "%Y:%m:%d %H:%M:%S")
-                print datetime.datetime.fromtimestamp(time.mktime(tm))
+            result[tag] = tags[tag]
 
-    return
+    result['EXIF Date'] = datetime.datetime.fromtimestamp(
+        time.mktime(time.strptime(str(result['EXIF DateTimeDigitized']), "%Y:%m:%d %H:%M:%S")))
+
+    return result
     # result = metadata_fields.copy()
     # try:
     #     metadata = get_exif(filename)
