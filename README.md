@@ -140,7 +140,6 @@ Or if you did just pip install mediaphile:
 * lxml (http://lxml.de/, optional but required by BeautifulSoup)
 * pyinotify (https://github.com/seb-m/pyinotify, optional - for watching a folder for photos)
 
-
 ## History
 
 MediaPhile is a refactoring of the reusable django-app called django-photofile. I needed to use some of the code outside django and
