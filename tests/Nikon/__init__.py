@@ -1,4 +1,5 @@
 import os
+import pprint
 import unittest
 
 from mediaphile.lib.photos import get_photos_in_folder, get_date_from_file
@@ -17,7 +18,7 @@ class NikonTests(unittest.TestCase):
         """
         self.source_folder = os.path.join(os.curdir, 'Nikon')
 
-    def test_get_photos(self):
+    def _test_get_photos(self):
         """
 
         """
@@ -37,6 +38,10 @@ class NikonTests(unittest.TestCase):
         #self.assertRaises(TypeError, random.shuffle, (1,2,3))
         ## self.assertTrue(element in self.seq)
 
+    def test_nef_DSC_1807_20060417_134347_handling(self):
+        nef_file = os.path.join(self.source_folder, 'DSC_1807_20060417_134347.NEF')
+        pprint.pprint(get_metadata(nef_file))
+        pprint.pprint(get_exif(nef_file))
 
 if __name__ == '__main__':
     unittest.main()
