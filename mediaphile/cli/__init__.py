@@ -22,6 +22,7 @@ default_ignore_files = ['thumbs.db', 'pspbrwse.jbf', 'picasa.ini', 'autorun.inf'
 default_ignore_folders = []
 default_skip_existing = False
 default_use_checksum_existence_check = False
+default_target_folder = ''
 
 
 def get_user_config_filename(folder=None):
@@ -61,6 +62,7 @@ def get_user_config(folder=None):
         config.set('options', 'ignore folders', ','.join(default_ignore_folders))
         config.set('options', 'skip existing', default_skip_existing)
         config.set('options', 'use checksum existence check', default_use_checksum_existence_check)
+        config.set('options', 'target folder', default_target_folder)
 
         with open(config_file, 'wb') as configfile:
             config.write(configfile)
@@ -80,12 +82,12 @@ def validate_environment():
     optional = 0
 
     try:
-        import pyexiv2
+        import exifread
 
-        print("PyExiv2 is installed.")
+        print("exifread is installed.")
     except (ImportError):
         optional += 1
-        print("PyExiv2 is missing.")
+        print("exifread is missing.")
 
     try:
         import PIL

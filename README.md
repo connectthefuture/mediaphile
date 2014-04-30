@@ -105,23 +105,17 @@ and always backup the files you process, both the master archive and the folders
 
 ## Installation
 
-To take full advantage of mediaphile you must install pyexiv2 (http://tilloy.net/dev/pyexiv2/download.html). Since pyexiv2
-isn't pip-friendly either download the exe-file if you're on windows or on ubuntu:
-
-    sudo apt-get install python-pyexiv2
-
 Then install mediaphile using one of these methods:
 
 Alternative a)
 
     pip install mediaphile
 
-
 Alternative b) download source, unpack and do:
 
     python setup.py install
 
-The line above will install mediaphile and the only mandatory third-party library Pillow. To enable all available features you must
+The line above will install mediaphile and the only mandatory third-party libraries Pillow and exifread. To enable all available features you must
 install the optional third-party libraries:
 
 If you downloaded the complete source code:
@@ -135,7 +129,7 @@ Or if you did just pip install mediaphile:
 ## Requirements
 
 * pillow or PIL (mandatory)
-* pyexiv2 (optional)
+* exifread (mandatory)
 * BeautifulSoup ( http://www.crummy.com/software/BeautifulSoup/, optional - for parsing XMP-files)
 * lxml (http://lxml.de/, optional but required by BeautifulSoup)
 * pyinotify (https://github.com/seb-m/pyinotify, optional - for watching a folder for photos)

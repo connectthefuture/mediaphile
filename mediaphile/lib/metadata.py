@@ -7,12 +7,7 @@ import re
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from PIL import IptcImagePlugin
-
-try:
-    import pyexiv2
-    PYEXIV2_SUPPORT = True
-except ImportError:
-    PYEXIV2_SUPPORT = False
+import exifread
 
 
 # Credits http://eran.sandler.co.il/2011/05/20/extract-gps-latitude-and-longitude-data-from-exif-using-python-imaging-library-pil/
@@ -77,32 +72,6 @@ def get_keywords(filename):
         return [s.strip() for s in metadata[key].raw_value]
     except KeyError:
         return []
-
-
-def set_keywords(filename, keywords):
-    """
-
-    :param filename:
-    :param keywords:
-    :return:
-    """
-    if not PYEXIV2_SUPPORT or not keywords:
-        return
-
-    metadata = pyexiv2.metadata.ImageMetadata(filename)
-    metadata.read()
-    key = 'Iptc.Application2.Keywords'  # XMP keywords?
-    try:
-        old_keywords = [s.strip() for s in metadata[key].raw_value]
-    except KeyError:
-        old_keywords = []
-
-    for keyword in old_keywords:
-        if not keyword in keywords:
-            keywords.append(keyword)
-
-    metadata[key] = keywords
-    metadata.write()
 
 
 # http://www.blog.pythonlibrary.org/2010/03/28/getting-photo-metadata-exif-using-python/
@@ -344,74 +313,91 @@ def get_metadata(filename):
     :param filename:
     :return:
     """
-    result = metadata_fields.copy()
-    try:
-        metadata = get_exif(filename)
-        #for k,v in metadata.items():
-        #    print "TAG", k, v, str(v)
-        # EXIF
-        tm = time.strptime(
-            metadata.get('DateTime', metadata.get('DateTimeOriginal', metadata.get('DateTimeDigitized'))),
-            "%Y:%m:%d %H:%M:%S")
-        result['exif_date'] = datetime.datetime.fromtimestamp(time.mktime(tm))
-        result['camera_model'] = metadata.get("Model", None)
-        result['orientation'] = metadata.get("Orientation", None)
-        result['exposure_time'] = _frac_to_simple(metadata.get("ExposureTime", metadata.get('ShutterSpeedValue', 0)))
-        result['fnumber'] = _frac_to_simple(metadata.get("FNumber", -1.0))
-        result['exposure_program'] = metadata.get("ExposureProgram", None)
-        result['iso_speed'] = metadata.get("ISOSpeedRatings", None)
-        result['metering_mode'] = metadata.get("MeteringMode", None)
-        result['light_source'] = metadata.get("LightSource", None)
-        result['flash_used'] = metadata.get("Flash", None)
-        result['focal_length'] = _frac_to_simple(metadata.get("FocalLength", -1.0))
-        result['width'] = metadata.get('ExifImageWidth', None)
-        result['height'] = metadata.get('ExifImageHeight', None)
-        result['software'] = metadata.get('Software')
-        result['manufacturer'] = metadata.get('Make')
+    path, filename = os.path.split(filename)
+    path = os.path.abspath(path)
+    filename, ext = os.path.splitext(filename)
+    complete_filename = os.path.join(path, filename+ext)
 
-        # IPTC
-        result['keywords'] = metadata.get('Keywords', None)
-        result['headline'] = metadata.get('Headline', metadata.get('By-line'))
-        result['caption'] = metadata.get('Caption', metadata.get('ImageDescription'))
-        result['copyright'] = metadata.get('Copyright', None)
-        # GPS tags
-        result['longitude'] = metadata.get('longitude')
-        result['latitude'] = metadata.get('latitude')
-        result['altitude'] = metadata.get('altitude')
-    except Exception, e:
-        logging.warning("Error using PIL: %s for file %s." % (e, filename))
-        if PYEXIV2_SUPPORT:
-            try:
-                metadata = extract_photo_metadata(filename)
-                # EXIF
-                try:
-                    result['exif_date'] = metadata['Exif.Image.DateTime'].value
-                except:
-                    result['exif_date'] = datetime.datetime.fromtimestamp(os.stat(filename).st_ctime)
-                result['camera_model'] = metadata.get("Exif.Image.Model", None)
-                result['orientation'] = metadata.get("Exif.Image.Orientation", None)
-                if result['orientation']:
-                    result['orientation'] = result['orientation'].value
-                result['exposure_time'] = metadata.get("Exif.Photo.ExposureTime", None)
-                result['fnumber'] = metadata.get("Exif.Photo.FNumber", None)
-                result['exposure_program'] = metadata.get("Exif.Photo.ExposureProgram", None)
-                result['iso_speed'] = metadata.get("Exif.Photo.ISOSpeedRatings", None)
-                result['metering_mode'] = metadata.get("Exif.Photo.MeteringMode", None)
-                result['light_source'] = metadata.get("Exif.Photo.LightSource", None)
-                result['flash_used'] = metadata.get("Exif.Photo.Flash", None)
-                result['focal_length'] = metadata.get("Exif.Photo.FocalLength", None)
-                longitude, latitude, altitude = extract_gps_info(metadata)
-                result['longitude'] = longitude
-                result['latitude'] = latitude
-                result['altitude'] = altitude
-                result['exposure_mode'] = metadata.get("Exif.Photo.ExposureMode", None)
-                result['whitebalance'] = metadata.get("Exif.Photo.WhiteBalance", None)
-                result['focal_length_in_35mm'] = metadata.get("Exif.Photo.FocalLengthIn35mmFilm", None)
-                result['width'] = metadata.get('ExifImageWidth', None)
-                result['height'] = metadata.get('ExifImageHeight', None)
-                # IPTC
-            except Exception, e:
-                logging.warning("Error using PYEXIV: %s for file %s." % (e, filename))
+    # Todo : check if NEF then code below, Canon CR2 then what?
+    f = open(complete_filename, 'rb')
+    tags = exifread.process_file(f)
+    for tag in tags.keys():
+        if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
+            #print "Key: '%s', value %s, %s" % (tag, tags[tag], vars(tags[tag]))
+            if tag == 'EXIF DateTimeDigitized':
+                #print tag, tags[tag]
+                tm = time.strptime(str(tags[tag]), "%Y:%m:%d %H:%M:%S")
+                print datetime.datetime.fromtimestamp(time.mktime(tm))
+
+    return
+    # result = metadata_fields.copy()
+    # try:
+    #     metadata = get_exif(filename)
+    #     #for k,v in metadata.items():
+    #     #    print "TAG", k, v, str(v)
+    #     # EXIF
+    #     tm = time.strptime(
+    #         metadata.get('DateTime', metadata.get('DateTimeOriginal', metadata.get('DateTimeDigitized'))),
+    #         "%Y:%m:%d %H:%M:%S")
+    #     result['exif_date'] = datetime.datetime.fromtimestamp(time.mktime(tm))
+    #     result['camera_model'] = metadata.get("Model", None)
+    #     result['orientation'] = metadata.get("Orientation", None)
+    #     result['exposure_time'] = _frac_to_simple(metadata.get("ExposureTime", metadata.get('ShutterSpeedValue', 0)))
+    #     result['fnumber'] = _frac_to_simple(metadata.get("FNumber", -1.0))
+    #     result['exposure_program'] = metadata.get("ExposureProgram", None)
+    #     result['iso_speed'] = metadata.get("ISOSpeedRatings", None)
+    #     result['metering_mode'] = metadata.get("MeteringMode", None)
+    #     result['light_source'] = metadata.get("LightSource", None)
+    #     result['flash_used'] = metadata.get("Flash", None)
+    #     result['focal_length'] = _frac_to_simple(metadata.get("FocalLength", -1.0))
+    #     result['width'] = metadata.get('ExifImageWidth', None)
+    #     result['height'] = metadata.get('ExifImageHeight', None)
+    #     result['software'] = metadata.get('Software')
+    #     result['manufacturer'] = metadata.get('Make')
+    #
+    #     # IPTC
+    #     result['keywords'] = metadata.get('Keywords', None)
+    #     result['headline'] = metadata.get('Headline', metadata.get('By-line'))
+    #     result['caption'] = metadata.get('Caption', metadata.get('ImageDescription'))
+    #     result['copyright'] = metadata.get('Copyright', None)
+    #     # GPS tags
+    #     result['longitude'] = metadata.get('longitude')
+    #     result['latitude'] = metadata.get('latitude')
+    #     result['altitude'] = metadata.get('altitude')
+    # except Exception, e:
+    #     logging.warning("Error using PIL: %s for file %s." % (e, filename))
+    #     if PYEXIV2_SUPPORT:
+    #         try:
+    #             metadata = extract_photo_metadata(filename)
+    #             # EXIF
+    #             try:
+    #                 result['exif_date'] = metadata['Exif.Image.DateTime'].value
+    #             except:
+    #                 result['exif_date'] = datetime.datetime.fromtimestamp(os.stat(filename).st_ctime)
+    #             result['camera_model'] = metadata.get("Exif.Image.Model", None)
+    #             result['orientation'] = metadata.get("Exif.Image.Orientation", None)
+    #             if result['orientation']:
+    #                 result['orientation'] = result['orientation'].value
+    #             result['exposure_time'] = metadata.get("Exif.Photo.ExposureTime", None)
+    #             result['fnumber'] = metadata.get("Exif.Photo.FNumber", None)
+    #             result['exposure_program'] = metadata.get("Exif.Photo.ExposureProgram", None)
+    #             result['iso_speed'] = metadata.get("Exif.Photo.ISOSpeedRatings", None)
+    #             result['metering_mode'] = metadata.get("Exif.Photo.MeteringMode", None)
+    #             result['light_source'] = metadata.get("Exif.Photo.LightSource", None)
+    #             result['flash_used'] = metadata.get("Exif.Photo.Flash", None)
+    #             result['focal_length'] = metadata.get("Exif.Photo.FocalLength", None)
+    #             longitude, latitude, altitude = extract_gps_info(metadata)
+    #             result['longitude'] = longitude
+    #             result['latitude'] = latitude
+    #             result['altitude'] = altitude
+    #             result['exposure_mode'] = metadata.get("Exif.Photo.ExposureMode", None)
+    #             result['whitebalance'] = metadata.get("Exif.Photo.WhiteBalance", None)
+    #             result['focal_length_in_35mm'] = metadata.get("Exif.Photo.FocalLengthIn35mmFilm", None)
+    #             result['width'] = metadata.get('ExifImageWidth', None)
+    #             result['height'] = metadata.get('ExifImageHeight', None)
+    #             # IPTC
+    #         except Exception, e:
+    #             logging.warning("Error using PYEXIV: %s for file %s." % (e, filename))
 
     if not 'exif_date' in result:
         result['exif_date'] = datetime.datetime.fromtimestamp(os.stat(filename).st_ctime)
