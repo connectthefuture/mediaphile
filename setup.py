@@ -13,7 +13,7 @@ setup(
     license = "Modified BSD",
     keywords = "photo movie thumbnail organization generation metadata",
     url = "https://github.com/weholt/mediaphile",
-    install_requires = ['pillow', 'exifread',],
+    install_requires = ['exifread',],
     zip_safe = False,
     classifiers=[
         'Development Status :: 4 - Beta',

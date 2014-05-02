@@ -95,7 +95,7 @@ def validate_environment():
         print("PIL/pillow is installed.")
     except (ImportError):
         print("PIL/pillow is missing.")
-        errors += 1
+        optional += 1
 
     try:
         import bs4

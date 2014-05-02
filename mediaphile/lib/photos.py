@@ -5,8 +5,12 @@ import logging
 import shutil
 import datetime
 
-from PIL import Image
-from PIL.ExifTags import TAGS
+try:
+    from PIL import Image
+    from PIL.ExifTags import TAGS
+    PILLOW_SUPPORT = True
+except ImportError:
+    PILLOW_SUPPORT = False
 
 from mediaphile.cli import default_timestamp_format, default_duplicate_filename_format, default_new_filename_format, \
     default_use_checksum_existence_check
@@ -24,8 +28,8 @@ def get_date_from_file(filename):
     @returns: datetime
     """
     try:
-        return get_metadata(filename).get('exif_date', None)
-    except Exception as ex:
+        return get_metadata(filename).get('EXIF Date', None)
+    except KeyError as ex:
         logging.warning("'get_metadata' threw an exception when processing file '%s': %s" % (filename, ex))
         st = os.stat(filename)
         return datetime.fromtimestamp(st.st_ctime > st.st_mtime and st.st_ctime or st.st_mtime)

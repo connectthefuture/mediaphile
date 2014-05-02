@@ -115,7 +115,7 @@ Alternative b) download source, unpack and do:
 
     python setup.py install
 
-The line above will install mediaphile and the only mandatory third-party libraries Pillow and exifread. To enable all available features you must
+The line above will install mediaphile and the only mandatory third-party library exifread. To enable all available features you must
 install the optional third-party libraries:
 
 If you downloaded the complete source code:
@@ -128,8 +128,10 @@ Or if you did just pip install mediaphile:
 
 ## Requirements
 
-* pillow or PIL (mandatory)
 * exifread (mandatory)
+
+* iptcinfo (optional - enables IPTC support. https://bitbucket.org/gthomas/iptcinfo/overview )
+* pillow or PIL (optional - enables thumbnail generation)
 * BeautifulSoup ( http://www.crummy.com/software/BeautifulSoup/, optional - for parsing XMP-files)
 * lxml (http://lxml.de/, optional but required by BeautifulSoup)
 * pyinotify (https://github.com/seb-m/pyinotify, optional - for watching a folder for photos)
