@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import logging
 
 import os
 import sys
@@ -157,6 +158,8 @@ def add_common_options(parser):
     debug_group.add_option("-c", "--validate_environment", dest="validate_environment", action="store_true",
                            help="Validates the python environment and checks for required packages")
     debug_group.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose logging")
+    debug_group.add_option("--performance-logging", action="store_true", dest="performance_logging",
+                           help="enables performance logging to the consolse")
     parser.add_option_group(debug_group)
 
 
@@ -170,3 +173,11 @@ def check_common_options(options, args):
 
     if hasattr(options, 'target') and options.target:
         options.target = os.path.abspath(options.target)
+
+    if hasattr(options, 'performance_logging') and options.performance_logging:
+        logging.basicConfig(stream=sys.stdout)
+        logging.getLogger("performance_logging").setLevel(logging.DEBUG)
+
+    if hasattr(options, 'verbose') and options.verbose:
+        logging.basicConfig(stream=sys.stdout)
+        logging.getLogger("verboselogger").setLevel(logging.DEBUG)

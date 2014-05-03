@@ -4,7 +4,8 @@ import os
 from mediaphile.cli import default_new_filename_format, default_timestamp_format, default_duplicate_filename_format
 from mediaphile.lib import months
 import logging
-log = logging.getLogger("testlogger")
+performance_log = logging.getLogger("performance_log")
+log = logging.getLogger("verboselogger")
 
 
 def generate_valid_target(filename, duplicate_filename_format=default_duplicate_filename_format):
@@ -132,7 +133,7 @@ def remove_source_folders(folders):
 
 
 def find_duplicates(source_folder, target_folder, delete_duplicates=False,
-                    rename_duplicates=False, dry_run=False, verbose=False):
+                    rename_duplicates=False, dry_run=False, verbose=False, use_timestamp_for_diff=False):
     """
     Finds filenames present in both the source folder and the target folder and optionally removes them.
 
@@ -145,40 +146,44 @@ def find_duplicates(source_folder, target_folder, delete_duplicates=False,
     target_files = {}
 
     if verbose:
-        log.debug("Scanning source folder ..."),
+        performance_log.debug("Scanning source folder ..."),
 
     for filename in dirwalk(source_folder):
         st = os.stat(filename)
         source_files.setdefault(st.st_size, []).append((filename, st))
 
     if verbose:
-        log.debug("done!")
+        performance_log.debug("done!")
 
     if verbose:
-        log.debug("Scanning target folder ..."),
+        performance_log.debug("Scanning target folder ..."),
 
     for filename in dirwalk(target_folder):
         st = os.stat(filename)
         target_files.setdefault(st.st_size, []).append((filename, st))
 
     if verbose:
-        log.debug("done!")
-
-    if verbose:
-        log.debug("Locating duplicates:")
+        performance_log.debug("done!")
 
     for file_size, file_data in target_files.items():
         existing_files = source_files.get(file_size, [])
         for existing_filename, existing_st in existing_files:
             for filename, st in file_data:
-                existing_creation_time = st.st_mtime < st.st_ctime and st.st_mtime or st.st_ctime
-                st_creation_time = existing_st.st_mtime < existing_st.st_ctime and existing_st.st_mtime or existing_st.st_ctime
-                if existing_creation_time == st_creation_time:
-                    if delete_duplicates:
+                duplicate_found = False
+                if use_timestamp_for_diff:
+                    existing_creation_time = st.st_mtime < st.st_ctime and st.st_mtime or st.st_ctime
+                    st_creation_time = existing_st.st_mtime < existing_st.st_ctime and existing_st.st_mtime or existing_st.st_ctime
+                    if existing_creation_time == st_creation_time:
+                        duplicate_found = True
+                else:
+                    duplicate_found = get_checksum(filename) == get_checksum(existing_filename)
+
+                if duplicate_found:
+                    if delete_duplicates and not dry_run:
                         os.remove(filename)
 
                     if verbose:
-                        log.debug("%s appears to be a duplicate of %s." % (filename, existing_filename))
+                        log.debug("%s = %s." % (filename, existing_filename))
 
                     yield filename
 

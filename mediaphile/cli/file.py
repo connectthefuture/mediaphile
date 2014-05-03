@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+import logging
 
 import sys
 from optparse import OptionParser, OptionGroup
 from mediaphile.cli import add_common_options, check_common_options
-from mediaphile.lib.utils import find_duplicates
+from mediaphile.lib.file_operations import find_duplicates
 
 
 def main():
@@ -20,7 +21,7 @@ def main():
     parser.add_option_group(common_group)
 
     duplicate_group = OptionGroup(parser, "Duplicate handling")
-    duplicate_group.add_option("-d", "--find_duplicates",
+    duplicate_group.add_option("-d", "--find_duplicates", action="store_true",
                                help="locates duplicates in source folder compared to target folder",
                                dest="find_duplicates")
     duplicate_group.add_option("-x", "--delete_duplicates", action="store_true", dest="delete",
@@ -47,15 +48,17 @@ def main():
         print("ERROR: You must supply both source- and target-folders.\n")
         sys.exit(1)
 
+    print(vars(options))
+
     if options.find_duplicates:
-        find_duplicates(
+        list(find_duplicates(
             options.source,
             options.target,
             delete_duplicates=options.delete,
             rename_duplicates=options.rename,
             dry_run=options.dry_run,
             verbose=options.verbose
-        )
+        ))
 
 
 if __name__ == "__main__":
