@@ -8,6 +8,7 @@ from Canon import CanonTests
 from Panasonic import PanasonicTests
 from NonCameraSpecific import NonCameraSpecificTests
 from iphone import iPhone4Tests
+from test_file_operations import FileOperationTests
 
 
 class DummyTests(unittest.TestCase):

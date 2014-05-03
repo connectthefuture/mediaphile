@@ -3,6 +3,8 @@ import logging
 import os
 from mediaphile.cli import default_new_filename_format, default_timestamp_format, default_duplicate_filename_format
 from mediaphile.lib import months
+import logging
+log = logging.getLogger("testlogger")
 
 
 def generate_valid_target(filename, duplicate_filename_format=default_duplicate_filename_format):
@@ -117,6 +119,7 @@ def get_files_in_folder(folder, extensions_to_include=None, sort_filenames=True)
 
     return result
 
+
 def remove_source_folders(folders):
     """
     Removes any empty folders.
@@ -128,7 +131,8 @@ def remove_source_folders(folders):
             os.removedirs(folder)
 
 
-def find_duplicates(source_folder, target_folder, delete_duplicates=False, verbose=False):
+def find_duplicates(source_folder, target_folder, delete_duplicates=False,
+                    rename_duplicates=False, dry_run=False, verbose=False):
     """
     Finds filenames present in both the source folder and the target folder and optionally removes them.
 
@@ -139,28 +143,29 @@ def find_duplicates(source_folder, target_folder, delete_duplicates=False, verbo
     """
     source_files = {}
     target_files = {}
+
     if verbose:
-        logging.debug("Scanning source folder ..."),
+        log.debug("Scanning source folder ..."),
 
     for filename in dirwalk(source_folder):
         st = os.stat(filename)
         source_files.setdefault(st.st_size, []).append((filename, st))
 
     if verbose:
-        logging.debug("done!")
+        log.debug("done!")
 
     if verbose:
-        logging.debug("Scanning target folder ..."),
+        log.debug("Scanning target folder ..."),
 
     for filename in dirwalk(target_folder):
         st = os.stat(filename)
         target_files.setdefault(st.st_size, []).append((filename, st))
 
     if verbose:
-        logging.debug("done!")
+        log.debug("done!")
 
     if verbose:
-        logging.debug("Locating duplicates:")
+        log.debug("Locating duplicates:")
 
     for file_size, file_data in target_files.items():
         existing_files = source_files.get(file_size, [])
@@ -173,19 +178,9 @@ def find_duplicates(source_folder, target_folder, delete_duplicates=False, verbo
                         os.remove(filename)
 
                     if verbose:
-                        logging.debug("%s appears to be a duplicate of %s." % (filename, existing_filename))
+                        log.debug("%s appears to be a duplicate of %s." % (filename, existing_filename))
 
                     yield filename
-
-
-                    # base_filename, ext = os.path.splitext(filename)
-                    # if ext:
-                    #     if ext[1:].lower() in photo_extensions_to_include:
-                    #         exif = get_exif(filename)
-                    #         return str(
-                    #             time.strptime(exif.get('DateTime', exif.get('DateTimeOriginal', exif.get('DateTimeDigitized'))),
-                    #                           "%Y:%m:%d %H:%M:%S"))
-                    #
 
 
 def get_checksum(filename):
@@ -215,7 +210,7 @@ def build_file_cache(path, ignore_files=None):
     result = {}
     for filename in dirwalk(path):
         p, f = os.path.split(filename)
-        if f.lower() in ignore_files:
+        if ignore_files and f.lower() in ignore_files:
             continue
         st = os.stat(filename)
         result.setdefault(st.st_size, []).append(filename)

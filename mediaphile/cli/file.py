@@ -25,6 +25,8 @@ def main():
                                dest="find_duplicates")
     duplicate_group.add_option("-x", "--delete_duplicates", action="store_true", dest="delete",
                                help="deletes any duplicate file from source folder found in both source and target folder")
+    duplicate_group.add_option("-r", "--rename", action="store_true", dest="rename",
+                               help="renames any duplicate file in the source folder found in both source and target folder")
     parser.add_option_group(duplicate_group)
 
     new_content_group = OptionGroup(parser, "Finding new files")
@@ -37,12 +39,23 @@ def main():
     (options, args) = parser.parse_args()
     check_common_options(options, args)
 
+    if options.delete and options.rename:
+        print("Error: you cannot delete and rename in the same process. Chose one.")
+        sys.exit(1)
+
     if not options.source and not options.target:
         print("ERROR: You must supply both source- and target-folders.\n")
         sys.exit(1)
 
-    elif options.find_duplicates:
-        find_duplicates(options.source, options.target, delete_duplicates=options.delete, verbose=options.verbose)
+    if options.find_duplicates:
+        find_duplicates(
+            options.source,
+            options.target,
+            delete_duplicates=options.delete,
+            rename_duplicates=options.rename,
+            dry_run=options.dry_run,
+            verbose=options.verbose
+        )
 
 
 if __name__ == "__main__":
