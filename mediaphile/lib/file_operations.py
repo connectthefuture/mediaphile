@@ -1,10 +1,10 @@
 import hashlib
-import logging
 import os
-from mediaphile.cli import default_new_filename_format, default_timestamp_format, default_duplicate_filename_format
-from mediaphile.lib import months
 import logging
-performance_log = logging.getLogger("performance_log")
+
+from mediaphile.cli import default_new_filename_format, default_timestamp_format, default_duplicate_filename_format
+from mediaphile.lib import months, PerformanceLogger
+
 log = logging.getLogger("verboselogger")
 
 
@@ -140,7 +140,7 @@ def find_duplicates(source_folder, target_folder, delete_duplicates=False,
     :param source_folder: the source folder.
     :param target_folder: the master folder.
     :param delete_duplicates: boolean value to indicate if we want to remove any duplicates found from the source folder.
-    :param verbose: boolean value indicating verbose logging.
+    :param verbose: boolean value indicating verbose log.
     """
     source_files = {}
     target_files = {}
@@ -179,11 +179,20 @@ def find_duplicates(source_folder, target_folder, delete_duplicates=False,
                     duplicate_found = get_checksum(filename) == get_checksum(existing_filename)
 
                 if duplicate_found:
-                    if delete_duplicates and not dry_run:
-                        os.remove(filename)
-
                     if verbose:
                         log.debug("%s = %s." % (filename, existing_filename))
+
+                    if rename_duplicates:
+                        if dry_run:
+                            log.debug("%s renamed to %s" % (filename, '?'))
+                        else:
+                            pass
+
+                    if delete_duplicates:
+                        if dry_run:
+                            log.debug("%s removed" % filename)
+                        else:
+                            os.remove(filename)
 
                     yield filename
 
@@ -231,51 +240,39 @@ def find_new_files(source_folder, target_folder, verbose=False):
     :param target_folder: the folder containing existing files.
     :param verbose: boolean value indicating if the process logs debug info or not.
     """
-    if verbose:
-        logging.debug("Scanning source folder ..."),
+    with PerformanceLogger("Scanning source folder"):
+        source_files = build_file_cache(source_folder)
 
-    source_files = build_file_cache(source_folder)
-
-    if verbose:
-        logging.debug("done!")
-
-    if verbose:
-        logging.debug("Scanning target folder ..."),
-
-    target_files = build_file_cache(target_folder)
-
-    if verbose:
-        logging.debug("done!")
+    with PerformanceLogger("Scanning target folder"):
+        target_files = build_file_cache(target_folder)
 
     sha_cache = {}
-    if verbose:
-        logging.debug("Locating new content:")
-
-    for file_size, filenames in target_files.items():
-        if not file_size in source_files.keys():
-            for filename in filenames:
-                if verbose:
-                    logging.debug(filename)
-
-                yield filename
-        else:
-            for existing_filename in source_files[file_size]:
+    with PerformanceLogger("Locating new content"):
+        for file_size, filenames in target_files.items():
+            if not file_size in source_files.keys():
                 for filename in filenames:
+                    if verbose:
+                        log.debug(filename)
 
-                    if existing_filename[:8] == filename[:8]:
-                        continue
+                    yield filename
+            else:
+                for existing_filename in source_files[file_size]:
+                    for filename in filenames:
 
-                    if not existing_filename in sha_cache:
-                        sha_cache[existing_filename] = get_checksum(existing_filename)
+                        if existing_filename[:8] == filename[:8]:
+                            continue
 
-                    if not filename in sha_cache:
-                        sha_cache[filename] = get_checksum(filename)
+                        if not existing_filename in sha_cache:
+                            sha_cache[existing_filename] = get_checksum(existing_filename)
 
-                    if sha_cache[existing_filename] != sha_cache[filename]:
-                        if verbose:
-                            logging.debug(filename)
+                        if not filename in sha_cache:
+                            sha_cache[filename] = get_checksum(filename)
 
-                        yield filename
+                        if sha_cache[existing_filename] != sha_cache[filename]:
+                            if verbose:
+                                log.debug(filename)
+
+                            yield filename
 
 
 def clean_up(source_folder, ignore_files=None):
@@ -283,7 +280,7 @@ def clean_up(source_folder, ignore_files=None):
 
     :param source_folder:
     """
-    logging.debug("Cleaning up %s" % source_folder)
+    log.debug("Cleaning up %s" % source_folder)
     for filename in dirwalk(source_folder):
         if os.path.basename(filename) in ignore_files:
             os.remove(filename)
@@ -306,4 +303,4 @@ def clean_up(source_folder, ignore_files=None):
             try:
                 os.removedirs(path)
             except (Exception) as e:
-                logging.debug("Error removing %s because %s." % (path, e))
+                log.debug("Error removing %s because %s." % (path, e))

@@ -12,6 +12,7 @@ from optparse import OptionGroup
 #                                Defaults
 #
 # ------------------------------------------------------------------------
+from mediaphile.lib import PerformanceLogger
 
 default_timestamp_format = '%Y%m%d_%H%M%S'#%f
 default_duplicate_filename_format = '%(filename)s~%(counter)s%(file_extension)s'
@@ -175,8 +176,7 @@ def check_common_options(options, args):
         options.target = os.path.abspath(options.target)
 
     if hasattr(options, 'performance_logging') and options.performance_logging:
-        logging.basicConfig(stream=sys.stdout)
-        logging.getLogger("performance_logging").setLevel(logging.DEBUG)
+        PerformanceLogger.enable()
 
     if hasattr(options, 'verbose') and options.verbose:
         logging.basicConfig(stream=sys.stdout)

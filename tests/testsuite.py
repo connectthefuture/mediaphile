@@ -2,12 +2,14 @@ import logging
 from optparse import OptionParser, OptionGroup
 import unittest
 import sys
+import time
 
 from Nikon import NikonTests
 from Canon import CanonTests
 from Panasonic import PanasonicTests
 from NonCameraSpecific import NonCameraSpecificTests
 from iphone import iPhone4Tests
+from mediaphile.lib import PerformanceLogger
 from test_file_operations import FileOperationTests
 
 
@@ -35,4 +37,5 @@ def main():
     unittest.main()
 
 if __name__ == '__main__':
+    PerformanceLogger.enable()
     main()
