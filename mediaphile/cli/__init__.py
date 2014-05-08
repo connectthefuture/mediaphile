@@ -25,7 +25,7 @@ default_ignore_folders = []
 default_skip_existing = False
 default_use_checksum_existence_check = False
 default_target_folder = ''
-
+default_auto_tag = False
 
 def get_user_config_filename(folder=None):
     """
@@ -65,6 +65,7 @@ def get_user_config(folder=None):
         config.set('options', 'skip existing', default_skip_existing)
         config.set('options', 'use checksum existence check', default_use_checksum_existence_check)
         config.set('options', 'target folder', default_target_folder)
+        config.set('options', 'auto tag', default_auto_tag)
 
         with open(config_file, 'wb') as configfile:
             config.write(configfile)
@@ -179,5 +180,6 @@ def check_common_options(options, args):
         PerformanceLogger.enable()
 
     if hasattr(options, 'verbose') and options.verbose:
+        print("Verbose output")
         logging.basicConfig(stream=sys.stdout)
-        logging.getLogger("verboselogger").setLevel(logging.DEBUG)
+        logging.getLogger("verbose").setLevel(logging.DEBUG)

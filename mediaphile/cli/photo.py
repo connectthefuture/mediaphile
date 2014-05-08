@@ -71,6 +71,9 @@ def main():
                             help="folder containing mediaphile.ini to use")
     common_group.add_option("-l", "--list", dest="list", action="store_true",
                             help="list all files in source folder with photo specific data")
+    common_group.add_option("-a", "--auto-tag", dest="auto_tag", action="store_true",
+                            help="use prepending folders as tags instead of day part from date")
+    common_group.add_option("--tag", dest="tag", help="tag to use instead of day part from date")
     parser.add_option_group(common_group)
 
     add_common_options(parser)
@@ -89,21 +92,22 @@ def main():
         print_help(parser)
         sys.exit(1)
 
-    elif options.relocate_photos:
-        config = get_user_config(options.configuration_folder or None)
+    config = get_user_config(options.configuration_folder or None)
 
-        relocate_photos(
-            source_dir=options.source,
-            target_dir=options.target,
-            append_timestamp=config.getboolean('options', 'append timestamp'),
-            remove_source=options.delete,
-            dry_run=options.dry_run,
-            photo_extensions_to_include=[ext.strip() for ext in config.get('options', 'photo extensions').split(',')],
-            timestamp_format=config.get('options', 'timestamp format'),
-            duplicate_filename_format=config.get('options', 'duplicate filename format'),
-            new_filename_format=config.get('options', 'new filename format'),
-            path_prefix=options.path_prefix,
-            skip_existing=options.skip_existing or config.getboolean('options', 'skip existing'))
+    relocate_photos(
+        source_dir=options.source,
+        target_dir=options.target,
+        append_timestamp=config.getboolean('options', 'append timestamp') or False,
+        remove_source=options.delete,
+        tag=options.tag,
+        dry_run=options.dry_run,
+        photo_extensions_to_include=[ext.strip() for ext in config.get('options', 'photo extensions').split(',')],
+        timestamp_format=config.get('options', 'timestamp format'),
+        duplicate_filename_format=config.get('options', 'duplicate filename format'),
+        new_filename_format=config.get('options', 'new filename format'),
+        path_prefix=options.path_prefix,
+        skip_existing=options.skip_existing or config.getboolean('options', 'skip existing'),
+        auto_tag=options.auto_tag or config.getboolean('options', 'auto tag'))
 
 
 if __name__ == "__main__":

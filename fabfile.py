@@ -32,3 +32,21 @@ def base_test():
     local('python setup.py install')
     with lcd(os.path.join(os.curdir, 'tests')):
         local("python testsuite.py")
+
+
+def test_generation():
+    """
+    clones https://github.com/ianare/exif-samples into a testfolder and tries to process the contents.
+    """
+    local('python setup.py install')
+    test_area = os.path.join(os.curdir, 'testarea')
+    if os.path.exists(test_area):
+        local('rm -rf testarea')
+
+    local('mkdir testarea')
+    local('mkdir testarea/sorted')
+    local('cp -R tests/ testarea/')
+    with lcd(test_area):
+        local("git clone https://github.com/ianare/exif-samples")
+        local('mediaphile -s . -t sorted --verbose')
+    #local('rm -rf testarea')

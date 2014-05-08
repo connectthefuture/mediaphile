@@ -5,7 +5,7 @@ import logging
 from mediaphile.cli import default_new_filename_format, default_timestamp_format, default_duplicate_filename_format
 from mediaphile.lib import months, PerformanceLogger
 
-log = logging.getLogger("verboselogger")
+logger = logging.getLogger("verbose")
 
 
 def generate_valid_target(filename, duplicate_filename_format=default_duplicate_filename_format):
@@ -69,6 +69,8 @@ def generate_filename_from_date(filename, file_date, timestamp_format=default_ti
 
         0 -- ok
         1 -- bad
+        2 -- just testing the sphinx doc features! ;-)
+
     """
     filename = os.path.basename(filename)
     timestamp = file_date.strftime(timestamp_format)
@@ -180,17 +182,17 @@ def find_duplicates(source_folder, target_folder, delete_duplicates=False,
 
                 if duplicate_found:
                     if verbose:
-                        log.debug("%s = %s." % (filename, existing_filename))
+                        logger.debug("%s = %s." % (filename, existing_filename))
 
                     if rename_duplicates:
                         if dry_run:
-                            log.debug("%s renamed to %s" % (filename, '?'))
+                            logger.debug("%s renamed to %s" % (filename, '?'))
                         else:
                             pass
 
                     if delete_duplicates:
                         if dry_run:
-                            log.debug("%s removed" % filename)
+                            logger.debug("%s removed" % filename)
                         else:
                             os.remove(filename)
 
@@ -252,7 +254,7 @@ def find_new_files(source_folder, target_folder, verbose=False):
             if not file_size in source_files.keys():
                 for filename in filenames:
                     if verbose:
-                        log.debug(filename)
+                        logger.debug(filename)
 
                     yield filename
             else:
@@ -270,7 +272,7 @@ def find_new_files(source_folder, target_folder, verbose=False):
 
                         if sha_cache[existing_filename] != sha_cache[filename]:
                             if verbose:
-                                log.debug(filename)
+                                logger.debug(filename)
 
                             yield filename
 
@@ -280,7 +282,7 @@ def clean_up(source_folder, ignore_files=None):
 
     :param source_folder:
     """
-    log.debug("Cleaning up %s" % source_folder)
+    logger.debug("Cleaning up %s" % source_folder)
     for filename in dirwalk(source_folder):
         if os.path.basename(filename) in ignore_files:
             os.remove(filename)
@@ -303,4 +305,4 @@ def clean_up(source_folder, ignore_files=None):
             try:
                 os.removedirs(path)
             except (Exception) as e:
-                log.debug("Error removing %s because %s." % (path, e))
+                logger.debug("Error removing %s because %s." % (path, e))

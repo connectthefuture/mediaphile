@@ -5,3 +5,4 @@ pyinotify
 exifread>=1.4.2
 iptcinfo
 fabric
+dateutil

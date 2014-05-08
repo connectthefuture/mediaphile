@@ -1,6 +1,6 @@
 #MediaPhile
 
-- Version : 0.1-pre
+- Version : 0.1.0
 - Author : Thomas A. Weholt <thomas@weholt.org>
 - License : Modified BSD
 - WWW : https://github.com/weholt/mediaphile

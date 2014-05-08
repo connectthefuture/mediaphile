@@ -32,10 +32,10 @@ def main():
     (options, args) = parser.parse_args()
     if options.verbose:
         logging.basicConfig(stream=sys.stdout)
-        logging.getLogger("testlogger").setLevel(logging.DEBUG)
+        logging.getLogger("verbose").setLevel(logging.DEBUG)
 
     unittest.main()
 
 if __name__ == '__main__':
-    PerformanceLogger.enable()
+    #PerformanceLogger.enable()
     main()

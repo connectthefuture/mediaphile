@@ -5,6 +5,8 @@ import logging
 import shutil
 import datetime
 
+logger = logging.getLogger("verbose")
+
 try:
     from PIL import Image
     from PIL.ExifTags import TAGS
@@ -27,12 +29,20 @@ def get_date_from_file(filename):
     @param filename: the file to process
     @returns: datetime
     """
+
+    def _get_date_from_stat(fname):
+        st = os.stat(fname)
+        return datetime.datetime.fromtimestamp(st.st_ctime > st.st_mtime and st.st_ctime or st.st_mtime)
+
     try:
-        return get_metadata(filename).get('EXIF Date', None)
+        dt = get_metadata(filename).get('EXIF Date', None)
+        if not dt:
+            return _get_date_from_stat(filename)
+
+        return dt
     except KeyError as ex:
-        logging.warning("'get_metadata' threw an exception when processing file '%s': %s" % (filename, ex))
-        st = os.stat(filename)
-        return datetime.fromtimestamp(st.st_ctime > st.st_mtime and st.st_ctime or st.st_mtime)
+        logger.warning("'get_metadata' threw an exception when processing file '%s': %s" % (filename, ex))
+        return _get_date_from_stat(filename)
 
 
 def get_photos_in_folder(folder, photo_extensions_to_include=None):
@@ -46,10 +56,12 @@ def get_photos_in_folder(folder, photo_extensions_to_include=None):
 def relocate_photos(source_dir, target_dir=None, append_timestamp=True, remove_source=True, tag=None, dry_run=False,
                     photo_extensions_to_include=None, timestamp_format=default_timestamp_format,
                     duplicate_filename_format=default_duplicate_filename_format,
-                    new_filename_format=default_new_filename_format, path_prefix=None, skip_existing=False):
+                    new_filename_format=default_new_filename_format, path_prefix=None, skip_existing=False,
+                    auto_tag=False):
     """
     Relocates all photos from the source folder into a date-based hierarchy in the target folder.
 
+    :param auto_tag:
     :param skip_existing:
     :param path_prefix:
     :param dry_run:
@@ -71,7 +83,7 @@ def relocate_photos(source_dir, target_dir=None, append_timestamp=True, remove_s
         current_tag = tag
         for filename in filenames:
             complete_filename = os.path.join(path, filename)
-            if not current_tag:
+            if not current_tag and auto_tag:
                 current_tag = get_tag_from_filename(complete_filename, source_dir)
 
             relocate_photo(
@@ -115,6 +127,10 @@ def relocate_photo(filename, target_dir, file_date=None, append_timestamp=True, 
     if not file_date:
         file_date = get_date_from_file(filename)
 
+    if not file_date:
+        logger.warning("Error getting date from %s" % filename)
+        return
+
     target_dir = os.path.join(target_dir, generate_folders_from_date(file_date, tag, path_prefix))
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
@@ -126,24 +142,23 @@ def relocate_photo(filename, target_dir, file_date=None, append_timestamp=True, 
         new_filename_format=new_filename_format) or os.path.basename(filename))
 
     if skip_existing and os.path.exists(new_filename):
-        if use_checksum_existence_check:
-            pass  # check checksums
+        if use_checksum_existence_check and get_checksum(new_filename) == get_checksum(filename):
+            return
         else:
             return
 
     new_filename = generate_valid_target(new_filename, duplicate_filename_format)
-    logging.debug("%s -> %s" % (filename, new_filename))
 
     if remove_source:
         if not dry_run:
             shutil.move(filename, new_filename)
         else:
-            logging.debug('move')
+            logger.debug('move %s to %s' % (filename, new_filename))
     else:
         if not dry_run:
             shutil.copy(filename, new_filename)
         else:
-            logging.debug('copy')
+            logger.debug('copy %s to %s' % (filename, new_filename))
 
     return new_filename
 
@@ -169,14 +184,14 @@ def generate_thumb(media_folder, absolute_filename, width, height, do_crop, alte
     :param alternative_thumbnail_name: alternative name for the generated thumbnail.
     :param raise_exception_on_error: boolean value indicating if we raise exception on any error or return quietly.
     """
-    logging.debug("Generating thumb: %s" % absolute_filename)
+    logger.debug("Generating thumb: %s" % absolute_filename)
 
     filename, ext = os.path.splitext(os.path.basename(absolute_filename))
     if alternative_thumbnail_name:
         filename = alternative_thumbnail_name
 
     if not os.path.exists(absolute_filename):
-        logging.warning("inputfile %s does not exists" % absolute_filename)
+        logger.warning("inputfile %s does not exists" % absolute_filename)
 
         if raise_exception_on_error:
             raise Exception('Inputfile "%s" does not exists.' % absolute_filename)
@@ -191,7 +206,7 @@ def generate_thumb(media_folder, absolute_filename, width, height, do_crop, alte
         try:
             resize_image(absolute_filename, output, width, height, crop=do_crop)
         except (Exception) as ex:
-            logging.warning(ex)
+            logger.warning(ex)
 
     return output
 
@@ -215,7 +230,7 @@ def resize_image(source_file, target_file, width, height, crop=False):
             if TAGS.get(tag, tag) == 'Orientation':
                 orientation = value
     except (Exception) as ex:
-        logging.warning(ex)
+        logger.warning(ex)
         orientation = None
 
     if image.mode not in ('L', 'RGB'):
