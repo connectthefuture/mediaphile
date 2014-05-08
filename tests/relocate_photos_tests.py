@@ -42,7 +42,7 @@ class RelocatePhotosTests(unittest.TestCase):
 
         relocate_photos(
             source_dir=self.testarea,
-            append_timestamp=False,
+            append_timestamp=True,
             remove_source=False,
             tag=None,
             dry_run=False,
@@ -67,7 +67,7 @@ class RelocatePhotosTests(unittest.TestCase):
 
         relocate_photos(
             source_dir=self.testarea,
-            append_timestamp=False,
+            append_timestamp=True,
             remove_source=False,
             tag=None,
             dry_run=False,
