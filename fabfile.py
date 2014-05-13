@@ -17,7 +17,7 @@ def full_test():
     """
     local('virtualenv --no-site-packages venv')
     venv_command = '/bin/bash venv/bin/activate'
-    pip_command = 'venv/bin/pip install -r requirements/optional.txt'
+    pip_command = 'venv/bin/pip install -r requirements/mandatory.txt'
     local(venv_command + ' && ' + pip_command)
     with lcd(os.path.join(os.curdir, 'tests')):
         local("python testsuite.py")
