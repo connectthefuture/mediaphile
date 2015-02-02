@@ -1,6 +1,6 @@
 import os
 import shutil
-import datetime
+from datetime import datetime
 from mediaphile.lib.file_operations import remove_source_folders, get_files_in_folder, \
     generate_valid_target, generate_folders_from_date, generate_filename_from_date, \
     get_tag_from_filename

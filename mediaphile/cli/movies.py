@@ -26,8 +26,7 @@ def main():
         print("ERROR: You must supply both source- and target-folders.\n")
         sys.exit(1)
 
-    elif options.relocate_movies:
-        relocate_movies(options.source, options.target)
+    relocate_movies(options.source, options.target)
 
 
 if __name__ == "__main__":
