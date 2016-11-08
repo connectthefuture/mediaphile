@@ -1,6 +1,9 @@
-import hashlib
 import os
+import platform
+import hashlib
 import logging
+
+import datetime
 
 from mediaphile.cli import default_new_filename_format, default_timestamp_format, default_duplicate_filename_format
 from mediaphile.lib import months, PerformanceLogger
@@ -306,3 +309,25 @@ def clean_up(source_folder, ignore_files=None):
                 os.removedirs(path)
             except (Exception) as e:
                 logger.debug("Error removing %s because %s." % (path, e))
+
+
+def creation_date(path_to_file):
+    """
+    Try to get the date that a file was created, falling back to when it was
+    last modified if that isn't possible.
+    See http://stackoverflow.com/a/39501288/1709587 for explanation.
+    Credit: http://stackoverflow.com/questions/237079/how-to-get-file-creation-modification-date-times-in-python
+    """
+    dt = None
+    if platform.system() == 'Windows':
+        dt = os.path.getctime(path_to_file)
+    else:
+        stat = os.stat(path_to_file)
+        try:
+            dt = stat.st_birthtime
+        except AttributeError:
+            # We're probably on Linux. No easy way to get creation dates here,
+            # so we'll settle for when its content was last modified.
+            dt = stat.st_ctime > stat.st_mtime and stat.st_ctime or stat.st_mtime
+
+    return dt and datetime.datetime.fromtimestamp(dt) or None

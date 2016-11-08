@@ -4,6 +4,7 @@ import time
 import datetime
 import re
 import exifread
+from file_operations import creation_date
 
 
 # Credits http://eran.sandler.co.il/2011/05/20/extract-gps-latitude-and-longitude-data-from-exif-using-python-imaging-library-pil/
@@ -142,7 +143,7 @@ def get_metadata(filename, details=False):
 
     f = open(complete_filename, 'rb')
     tags = exifread.process_file(f, details=details)
-    result = {}
+    result = {'CreationDate': creation_date(complete_filename)}
 
     if not tags:
         return result
@@ -159,3 +160,28 @@ def get_metadata(filename, details=False):
     #     result['exposure_time'] = _frac_to_simple(metadata.get("ExposureTime", metadata.get('ShutterSpeedValue', 0)))
     #     result['fnumber'] = _frac_to_simple(metadata.get("FNumber", -1.0))
     #     result['focal_length'] = _frac_to_simple(metadata.get("FocalLength", -1.0))
+
+
+def get_parsed_metadata(filename):
+    """
+
+    :param filename:
+    :return:
+    """
+    params = get_metadata(filename, True)
+    dt = params['EXIF Date'] or params['CreationDate']
+    fname, ext = os.path.splitext(filename)
+    result = {
+        'year': dt.year,
+        'month_name': None,
+        'day': dt.day,
+        'filename': os.path.basename(fname),
+        'month': dt.month,
+        'hour': dt.hour,
+        'minute': dt.minute,
+        'millisecond': dt.microsecond,
+        'file_extension': ext,
+        'path': os.path.abspath(fname)
+    }
+
+    return result
