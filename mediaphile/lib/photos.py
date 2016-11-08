@@ -1,5 +1,5 @@
 #coding=utf-8
-
+import types
 import os
 import logging
 import shutil
@@ -18,7 +18,7 @@ from mediaphile.cli import default_timestamp_format, default_duplicate_filename_
     default_use_checksum_existence_check
 from mediaphile.lib.file_operations import dirwalk, get_files_in_folder, remove_source_folders, \
     generate_folders_from_date, generate_filename_from_date, get_tag_from_filename, generate_valid_target
-from mediaphile.lib.metadata import get_metadata
+from mediaphile.lib.metadata import get_metadata, get_parsed_metadata
 
 
 def get_date_from_file(filename):
@@ -282,3 +282,76 @@ def resize_image(source_file, target_file, width, height, crop=False):
             image = image.transpose(Image.ROTATE_90)
 
     image.save(target_file)
+
+
+class MpsPhoto:
+    """
+
+    """
+
+    def __init__(self, filename, context = {}):
+        """
+
+        :param filename:
+        """
+        self.filename = filename
+        self.metadata = get_metadata(filename)
+        self.params = get_parsed_metadata(filename, self.metadata)
+        self.context = context
+        self.context.update(self.params)
+
+    def _build_parts(self, *args):
+        """
+
+        :param args:
+        :return:
+        """
+        parts = []
+        for arg in args:
+            if arg in self.context:
+                val = self.context.get(arg, None)
+                if type(val) == types.IntType:
+                    formatted = '%02d' % val
+                elif type(val) == types.StringType:
+                    formatted = val
+                else:
+                    formatted = str(val)
+            else:
+                formatted = str(arg)
+
+            parts.append(formatted)
+
+        return parts
+
+    def build_target_path(self, *args):
+        """
+
+        :param args:
+        :return:
+        """
+        return os.sep.join(self._build_parts(*args))
+
+    def build_target_filename(self, *args):
+        """
+
+        :param args:
+        :return:
+        """
+        return ''.join(self._build_parts(*args))
+
+    def generate_valid_target_filename(self, complete_target_filename):
+        """
+
+        :complete_target_filename:
+        :return:
+        """
+        if not os.path.exists(complete_target_filename):
+            return complete_target_filename
+
+        counter = 1
+        while 1:
+            filename, ext = os.path.splitext(complete_target_filename)
+            new_target_filename = '%s~%s%s' % (filename, counter, ext)
+            if not os.path.exists(new_target_filename):
+                return new_target_filename
+            counter += 1

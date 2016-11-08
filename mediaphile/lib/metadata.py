@@ -5,6 +5,7 @@ import datetime
 import re
 import exifread
 from file_operations import creation_date
+from mediaphile.lib import months
 
 
 # Credits http://eran.sandler.co.il/2011/05/20/extract-gps-latitude-and-longitude-data-from-exif-using-python-imaging-library-pil/
@@ -149,6 +150,8 @@ def get_metadata(filename, details=False):
         return result
 
     for tag in tags.keys():
+        print("%s=%s" %(tag, tags[tag]))
+
         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
             result[tag] = tags[tag]
 
@@ -162,26 +165,38 @@ def get_metadata(filename, details=False):
     #     result['focal_length'] = _frac_to_simple(metadata.get("FocalLength", -1.0))
 
 
-def get_parsed_metadata(filename):
+def get_parsed_metadata(filename, params=None):
     """
 
     :param filename:
     :return:
     """
-    params = get_metadata(filename, True)
+    if not params:
+        params = get_metadata(filename, True)
+
     dt = params['EXIF Date'] or params['CreationDate']
-    fname, ext = os.path.splitext(filename)
+    dtt = dt.timetuple()
+    ts = time.mktime(dtt)
+
+    path, fname = os.path.split(filename)
+    fname, ext = os.path.splitext(fname)
+
     result = {
         'year': dt.year,
-        'month_name': None,
+        'month_name': months.get(dt.month, None),
         'day': dt.day,
-        'filename': os.path.basename(fname),
+        'filename': fname,
         'month': dt.month,
         'hour': dt.hour,
         'minute': dt.minute,
-        'millisecond': dt.microsecond,
+        'second': dt.second,
+        'microsecond': dt.microsecond,
         'file_extension': ext,
-        'path': os.path.abspath(fname)
+        'model': str(params.get('Image Model', '')),
+        'make': str(params.get('Image Make', '')),
+        'path': path,
+        'date': dt,
+        'timestamp': int(ts)
     }
 
     return result
