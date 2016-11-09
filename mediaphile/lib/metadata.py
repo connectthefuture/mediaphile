@@ -181,9 +181,11 @@ def get_parsed_metadata(filename, params=None):
     path, fname = os.path.split(filename)
     fname, ext = os.path.splitext(fname)
 
-    result = {
+    lon, lat, altitude = extract_gps_info(params)
+
+    return {
         'year': dt.year,
-        'month_name': months.get(dt.month, None),
+        'name_of_month': months.get(dt.month, None),
         'day': dt.day,
         'filename': fname,
         'month': dt.month,
@@ -192,11 +194,12 @@ def get_parsed_metadata(filename, params=None):
         'second': dt.second,
         'microsecond': dt.microsecond,
         'file_extension': ext,
-        'model': str(params.get('Image Model', '')),
-        'make': str(params.get('Image Make', '')),
+        'camera_model': str(params.get('Image Model', '')),
+        'camera_make': str(params.get('Image Make', '')),
         'path': path,
         'date': dt,
-        'timestamp': int(ts)
+        'timestamp': int(ts),
+        'longitude': lon,
+        'latitude': lat,
+        'altitude': altitude
     }
-
-    return result
