@@ -174,7 +174,10 @@ def get_parsed_metadata(filename, params=None):
     if not params:
         params = get_metadata(filename, True)
 
-    dt = params['EXIF Date'] or params['CreationDate']
+    dt = params.get('EXIF Date', params.get('CreationDate'))
+    if not dt:
+        raise SystemExit("Error getting date-information cannot continue.")
+
     dtt = dt.timetuple()
     ts = time.mktime(dtt)
 
