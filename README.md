@@ -1,6 +1,6 @@
 #MediaPhile
 
-- Version : 0.1.0
+- Version : 0.2.0
 - Author : Thomas A. Weholt <thomas@weholt.org>
 - License : Modified BSD
 - WWW : https://github.com/weholt/mediaphile
@@ -120,22 +120,7 @@ install the optional third-party libraries:
 
 If you downloaded the complete source code:
 
-    pip install -r requirements/optional.txt
-
-Or if you did just pip install mediaphile:
-
-    pip install -r https://raw.githubusercontent.com/weholt/mediaphile/master/requirements/optional.txt
-
-## Requirements
-
-* exifread (mandatory)
-
-* iptcinfo (optional - enables IPTC support. https://bitbucket.org/gthomas/iptcinfo/overview )
-* pillow or PIL (optional - enables thumbnail generation)
-* BeautifulSoup ( http://www.crummy.com/software/BeautifulSoup/, optional - for parsing XMP-files)
-* lxml (http://lxml.de/, optional but required by BeautifulSoup)
-* pyinotify (https://github.com/seb-m/pyinotify, optional - for watching a folder for photos)
-* fabric (optional, deployment and test support. http://www.fabfile.org/installing.html)
+    pip install -r requirements.txt
 
 ## History
 
@@ -144,3 +129,4 @@ refactored out all the utils and metadata methods not directly related to the dj
 django-photofile will use this package.
 
 - 0.1-pre : first refactoring and initial release of mediaphile.
+- 0.2.0   : some adjustments to use it in a larger project.

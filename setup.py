@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = "MediaPhile",
-    version = "0.1.0",
+    version = "0.2.0",
     author = "Thomas Weholt",
     author_email = "thomas@weholt.org",
     description = ("A collection of programs and a library of reusable methods for organization and manipulation of photos and movies."),
