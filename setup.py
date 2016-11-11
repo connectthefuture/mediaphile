@@ -13,7 +13,7 @@ setup(
     license = "Modified BSD",
     keywords = "photo movie thumbnail organization generation metadata",
     url = "https://github.com/weholt/mediaphile",
-    install_requires = ['exifread','iptcinfo', 'python-dateutil', 'Pillow', 'beautifulsoup4', 'lxml', 'pyinotify', 'fabric', 'python-dateutil'],
+    install_requires = ['exifread', 'python-dateutil', 'Pillow', 'beautifulsoup4', 'lxml', 'pyinotify', 'fabric', 'python-dateutil'],
     zip_safe = False,
     classifiers=[
         'Development Status :: 4 - Beta',
