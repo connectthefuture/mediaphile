@@ -4,7 +4,7 @@ import time
 import datetime
 import re
 import exifread
-from file_operations import creation_date
+from mediaphile.lib.file_operations import creation_date
 from mediaphile.lib import months
 
 

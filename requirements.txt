@@ -3,7 +3,7 @@ python-dateutil
 Pillow>=2.3.0
 beautifulsoup4>=4.3.2
 lxml>=3.3.1
-pyinotify
+#pyinotify
 exifread>=1.4.2
-fabric
+#fabric
 python-dateutil

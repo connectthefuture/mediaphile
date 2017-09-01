@@ -3,7 +3,11 @@ import logging
 
 import os
 import sys
-import ConfigParser
+try:
+    import configparser as ConfigParser
+except ImportError:
+    import ConfigParser
+
 from os.path import expanduser
 from optparse import OptionGroup
 
@@ -18,7 +22,7 @@ default_timestamp_format = '%Y%m%d_%H%M%S'#%f
 default_duplicate_filename_format = '%(filename)s~%(counter)s%(file_extension)s'
 default_new_filename_format = "%(filename)s_%(timestamp)s%(file_extension)s"
 default_append_timestamp = True
-default_photo_extensions = ['jpg', 'nef', 'png', 'bmp', 'gif', 'cr2', 'tif', 'tiff', 'jpeg']
+default_photo_extensions = ['jpg', 'nef', 'png', 'bmp', 'gif', 'cr2', 'tif', 'tiff', 'jpeg', 'rw2']
 default_movie_extensions = ['avi', 'mov', 'mp4', 'mpg', 'mts', 'mpeg', 'mkv', '3gp', 'wmv', 'm2t']
 default_ignore_files = ['thumbs.db', 'pspbrwse.jbf', 'picasa.ini', 'autorun.inf', 'hpothb07.dat']
 default_ignore_folders = []
@@ -54,20 +58,22 @@ def get_user_config(folder=None):
 
     if not os.path.exists(config_file):
         config.add_section('options')
-        config.set('options', 'timestamp format', default_timestamp_format)
-        config.set('options', 'duplicate filename format', default_duplicate_filename_format)
-        config.set('options', 'new filename format', default_new_filename_format)
-        config.set('options', 'append timestamp', default_append_timestamp)
-        config.set('options', 'photo extensions', ','.join(default_photo_extensions))
-        config.set('options', 'movie extensions', ','.join(default_movie_extensions))
-        config.set('options', 'ignore files', ','.join(default_ignore_files))
-        config.set('options', 'ignore folders', ','.join(default_ignore_folders))
-        config.set('options', 'skip existing', default_skip_existing)
-        config.set('options', 'use checksum existence check', default_use_checksum_existence_check)
-        config.set('options', 'target folder', default_target_folder)
-        config.set('options', 'auto tag', default_auto_tag)
+        config['options'] = {
+                                'timestamp format': default_timestamp_format,
+                                'duplicate filename format': default_duplicate_filename_format,
+                                'new filename format': default_new_filename_format,
+                                'append timestamp': default_append_timestamp,
+                                'photo extensions': ','.join(default_photo_extensions),
+                                'movie extensions': ','.join(default_movie_extensions),
+                                'ignore files': ','.join(default_ignore_files),
+                                'ignore folders': ','.join(default_ignore_folders),
+                                'skip existing': default_skip_existing,
+                                'use checksum existence check': default_use_checksum_existence_check,
+                                'target folder': default_target_folder,
+                                'auto tag': default_auto_tag
+        }
 
-        with open(config_file, 'wb') as configfile:
+        with open(config_file, 'w') as configfile:
             config.write(configfile)
 
     else:
